@@ -17,3 +17,5 @@ class StoragedDrugs(models.Model):
     #drug = FK
     #storage = FK
     quantity = models.IntegerField()
+
+    
