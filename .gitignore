@@ -1,2 +1,3 @@
-.__pycache__
-.migrations
+.gitignore
+__pycache__/
+migrations/
