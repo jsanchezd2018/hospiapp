@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'hospiapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE'  : 'django.db.backends.mysql', 
-        'NAME'    : 'clepi',                    
+        'NAME'    : 'asclepius',                    
         'USER'    : 'root',                     
         'PASSWORD': 'password',                 
         'HOST'    : 'localhost',                
