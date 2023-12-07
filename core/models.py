@@ -10,3 +10,7 @@ class Drug(models.Model):
     NDC = models.IntegerField(null=True, blank=True)
     quantity = models.IntegerField()
     #group = models.ForeignKey(DrugType, on_delete=models.CASCADE, null=True, blank=True)
+
+class Storage(models.Model):
+    name = models.CharField(max_length=20)
+
