@@ -1,2 +1,3 @@
-__pycache__/
-migrations/
+core/__pycache__/
+core/migrations/
+hospiapp/__pycache__/
