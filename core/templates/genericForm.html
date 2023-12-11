@@ -1,31 +1,24 @@
-<html>
+{% extends 'base.html' %}
+
+{% block content %}
 <head>
-    <title>Lista de Medicamentos</title>
+    <title>{{ title }}</title>
 </head>
 <body>
-    <h1>Lista de Medicamentos</h1>
+    <h1>{{ title }}</h1>
     
-    <ul>
-        {% for drug in drugs %}
-            <li>{{ drug.name }} - {{ drug.NDC }}</li>
+    <form method="post" action="{% url function_url %}">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        {{ field.label_tag }}{{ field }}
+        {{ field.errors }}
+        <br>
         {% endfor %}
-    </ul>
-
-    <div class="paginator">
-        {% if drugs.has_previous %}
-            <a href="?page=1">&laquo; primera</a>
-            <a href="?page={{ drugs.previous_page_number }}">anterior</a>
-        {% endif %}
-
-        <span class="current">
-            Página {{ drugs.number }} de {{ drugs.paginator.num_pages }}.
-        </span>
-
-        {% if drugs.has_next %}
-            <a href="?page={{ drugs.next_page_number }}">siguiente</a>
-            <a href="?page={{ drugs.paginator.num_pages }}">última &raquo;</a>
-        {% endif %}
-    </div>
+    
+        <button type="submit">Crear</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
 
 </body>
-</html>
+{% endblock %}

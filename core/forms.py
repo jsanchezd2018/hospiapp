@@ -4,10 +4,15 @@ from django.forms import ModelForm
 from core.models import *
 
 
+### PHYSICAL PLACES ###
+
+
+### DRUGS ###
 class DrugForm(ModelForm):
     class Meta:
         model = Drug
-        fields = ['name', 'NDC', 'quantity']
+        fields = ['name', 'NDC', 'drugType']
+        redirect_url = 'core:drugs'
         
     name_attrs= {
         'max_length': 30,
@@ -22,22 +27,22 @@ class DrugForm(ModelForm):
     }
     NDC = forms.IntegerField(widget=forms.NumberInput(attrs=NDC_attrs), label='NDC', label_suffix=' ', required=False)
     
-    quantity_attrs= {
+    '''quantity_attrs= {
         'min': 0,
         'class': 'field',
         'default': 0,
     }
-    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
+    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')'''
     
-    '''group_attrs= {
+    drugType_attrs= {
         'class': 'field',
     }
-    group = forms.ModelChoiceField(queryset=DrugType.objects.all(), widget=forms.Select(attrs=group_attrs), label='Grupo', label_suffix=' ')'''
+    drugType = forms.ModelChoiceField(queryset=DrugType.objects.all(), widget=forms.Select(attrs=drugType_attrs), required=False, label='Grupo', label_suffix=' ')
     
     
 class DrugTypeForm(ModelForm):
     class Meta:
-        model = Drug
+        model = DrugType
         fields = ['name']
         
     name_attrs= {

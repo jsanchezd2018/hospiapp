@@ -5,10 +5,10 @@ from . import views
 app_name = 'core'
 
 drug_patterns = [
-    path('', views.drugs, name='medicamentos'),
-    path('crear/', views.createDrug, name='crear_medicamento'),
-    path('editar/<int:pk>', views.editDrug, name='editar_medicamento'),
-    path('eliminar/<int:pk>', views.deleteDrug, name='eliminar_medicamento'),
+    path('', views.drugs, name='drugs'),
+    path('crear/', views.createDrug, name='createDrug'),
+    path('editar/<int:pk>', views.editDrug, name='editDrug'),
+    path('eliminar/<int:pk>', views.deleteDrug, name='deleteDrug'),
 ]
 
 '''drugType_patterns = [
@@ -20,7 +20,7 @@ drug_patterns = [
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path('drugs/', include(drug_patterns)),
+    path('medicamentos/', include(drug_patterns)),
     #path('drugTypes/', include(drug_patterns)),
     
 ]

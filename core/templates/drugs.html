@@ -1,15 +1,49 @@
-<html>
+{% extends 'base.html' %}
+
+{% block content %}
 <head>
     <title>Lista de Medicamentos</title>
 </head>
 <body>
-    <h1>Lista de Medicamentos</h1>
-    
-    <ul>
-        {% for drug in drugs %}
-            <li>{{ drug.name }} - {{ drug.NDC }}</li>
-        {% endfor %}
-    </ul>
+
+    <h1>Medicamentos</h1>
+
+    <div>
+        <form action="{% url 'core:drugs' %}" method="GET">
+            <label for="query_generic">Buscar por nombre o NDC:</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <label for="query_type">Buscar por grupo:</label>
+            <select id="query_type"  name="query_type">
+                <option value="0"></option>
+                {% for type in types %}
+                <option value="{{ type.pk }}" {% if query_type == type.pk %}selected{% endif %} >{{ type.name }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        <a href="{% url "core:createDrug" %}">Nuevo medicamento</a>
+    </div>
+
+    <table>
+    <tr>
+        <th>Nombre</th>
+        <th>NDC</th>
+        <th>Grupo</th>
+    </tr>
+    {% for drug in drugs %}
+    <tr>
+        <td>{{ drug.name }}</td>
+        <td>{{ drug.NDC }}</td>
+        <td>{{ drug.drugType }}</td>
+        <td><a href="{% url "core:editDrug" drug.pk %}">Editar</a></td>
+        <td><a href="{% url "core:deleteDrug" drug.pk %}">Borrar</a></td>
+    </tr>
+    {% endfor %}
+
+    <!-- Puedes agregar más filas según sea necesario -->
+</table>
 
     <div class="paginator">
         {% if drugs.has_previous %}
@@ -18,7 +52,7 @@
         {% endif %}
 
         <span class="current">
-            Página {{ drugs.number }} de {{ drugs.paginator.num_pages }}.
+            {{ drugs.number }} / {{ drugs.paginator.num_pages }}
         </span>
 
         {% if drugs.has_next %}
@@ -28,4 +62,4 @@
     </div>
 
 </body>
-</html>
+{% endblock %}
