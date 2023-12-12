@@ -37,6 +37,7 @@ class DrugTypeForm(ModelForm):
     class Meta:
         model = DrugType
         fields = ['name']
+        redirect_url = 'core:drugTypes'
         
     name_attrs= {
         'max_length': 30,

@@ -1,18 +1,15 @@
-import os
 from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 
-from hospiapp.settings import BASE_DIR
 from .forms import *
-from django.http import HttpResponse
 
 
 def index(request):
     return render(request, 'index.html')
 
-
-
+### GENERIC CONSTANTS ###
+N = 10
 
 ### GENERIC FUNCTIONS ###
 def createGeneric(request, klass, function_url, title):
@@ -66,29 +63,16 @@ def deleteGeneric(request, klass, pk, function_url, title):
     }
     return render(request, 'genericDeletion.html', context=ctx)
 
-### DRUGS ###
 
+### DRUGS ###
 def createDrug(request):
     return createGeneric(request, DrugForm, 'core:createDrug', 'Nuevo medicamento')
 
 def editDrug(request, pk):
     return editGeneric(request, DrugForm, pk, 'core:editDrug', 'Editar medicamento')
 
-
-'''def deleteDrug(request, pk):
-    drug = get_object_or_404(Drug, pk=pk)
-    if request.method == 'POST':
-        drug.delete()
-        return redirect('core:drugs')
-
-    ctx = {
-        'drug': drug,
-    }
-    return render(request, 'genericDeletion.html', context=ctx)'''
-
 def deleteDrug(request, pk):
     return deleteGeneric(request, DrugForm, pk, 'core:deleteDrug', 'Borrar medicamento')
-
 
 def drugs(request):
     # Queries
@@ -98,7 +82,7 @@ def drugs(request):
     if query_type != '0':
         drugs = Drug.objects.filter( drugType__exact=query_type )
     # Paginator
-    paginator = Paginator(drugs, 10)
+    paginator = Paginator(drugs, N)
     page = request.GET.get('page', 1)
     try:
         drugs = paginator.page(page)
@@ -111,22 +95,33 @@ def drugs(request):
         'query_type': int(query_type),
         'types': DrugType.objects.all()
     }
-    return render(request, 'drugs.html', context=ctx)
-
-
+    return render(request, 'masterViewers/drugs.html', context=ctx)
 
 
 ### DRUG TYPES###
-'''def createDrug(request):
-    if request.method == "POST":
-        form = DrugForm(request.POST)
-        if form.is_valid():
-            form.save()
-    else:
-        form = DrugForm()
-    
-    ctx = {
-        'form': form,
-    }
-    return render(request, 'home.html', context=ctx)'''
+def createDrugType(request):
+    return createGeneric(request, DrugTypeForm, 'core:createDrugType', 'Nuevo grupo de medicamentos')
 
+def editDrugType(request, pk):
+    return editGeneric(request, DrugTypeForm, pk, 'core:editDrugType', 'Editar grupo de medicamentos')
+
+def deleteDrugType(request, pk):
+    return deleteGeneric(request, DrugTypeForm, pk, 'core:deleteDrugType', 'Borrar grupo de medicamentos')
+
+def drugTypes(request):
+    # Queries
+    query_generic = request.GET.get('query_generic', '')
+    drugTypes = DrugType.objects.filter( name__icontains=query_generic )
+    # Paginator
+    paginator = Paginator(drugTypes, N)
+    page = request.GET.get('page', 1)
+    try:
+        drugTypes = paginator.page(page)
+    except EmptyPage:
+        drugTypes = paginator.page(paginator.num_pages)
+    # Render
+    ctx = {
+        'drugTypes': drugTypes,
+        'query_generic': query_generic,
+    }
+    return render(request, 'masterViewers/drugTypes.html', context=ctx)

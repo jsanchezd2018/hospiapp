@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>Grupos de medicamentos</title>
+</head>
+<body>
+
+    <h1>Grupos de medicamentos</h1>
+
+    <div>
+        <form action="{% url 'core:drugTypes' %}" method="GET">
+            <label for="query_generic">Buscar por nombre:</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        <a href="{% url "core:createDrugType" %}">Nuevo grupo de medicamentos</a>
+    </div>
+
+    <table>
+    <tr>
+        <th>Nombre</th>
+    </tr>
+    {% for drugType in drugTypes %}
+    <tr>
+        <td>{{ drugType.name }}</td>
+        <td><a href="{% url "core:editDrugType" drugType.pk %}">Editar</a></td>
+        <td><a href="{% url "core:deleteDrugType" drugType.pk %}">Borrar</a></td>
+    </tr>
+    {% endfor %}
+
+    <!-- Puedes agregar más filas según sea necesario -->
+</table>
+
+    <div class="paginator">
+        {% if drugTypes.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ drugTypes.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ drugTypes.number }} / {{ drugTypes.paginator.num_pages }}
+        </span>
+
+        {% if drugTypes.has_next %}
+            <a href="?page={{ drugTypes.next_page_number }}">siguiente</a>
+            <a href="?page={{ drugTypes.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+</body>
+{% endblock %}

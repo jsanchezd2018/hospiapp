@@ -29,6 +29,9 @@ class Drug(models.Model):
     NDC = models.IntegerField(unique=True, null=True, blank=True)
     drugType = models.ForeignKey(DrugType, on_delete=models.SET_NULL, null=True, blank=True)
 
+    def __str__(self) -> str:
+        return self.name
+
 class StoragedDrug(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE, null=True, blank=True)
@@ -37,15 +40,24 @@ class StoragedDrug(models.Model):
     class Meta:
         models.UniqueConstraint(fields=['drug', 'storage'], name='no_multiplicity')
 
+    def __str__(self) -> str:
+        return self.drug.name
+
 
 ### PEOPLE ###
 class Doctor(models.Model):
     name = models.CharField(max_length=30, unique=True)
     active = models.BooleanField(default=True)
 
+    def __str__(self) -> str:
+        return self.name
+
 class User(models.Model):
     username = models.CharField(max_length=20, unique=True)
     password = models.CharField(max_length=15)
+
+    def __str__(self) -> str:
+        return self.username
 
 class Patient(models.Model):
     historyNumer = models.IntegerField(unique=True, null=True, blank=True)
@@ -56,3 +68,5 @@ class Patient(models.Model):
     bed = models.ForeignKey(Bed, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
 
+    def __str__(self) -> str:
+        return self.name
