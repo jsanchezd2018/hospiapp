@@ -32,53 +32,50 @@ def createGeneric(request, klass, function_url, title):
     }
     return render(request, 'genericForm.html', context=ctx)
 
-def editGeneric(request, klass, pk):
+def editGeneric(request, klass, pk, function_url, title):
     object = get_object_or_404(klass.Meta.model, pk=pk)
     if request.method == 'POST':
         form = klass(request.POST, instance=object)
         if form.is_valid():
             form.save()
+            return redirect(klass.Meta.redirect_url)
     else:
         form = klass(instance=object)
     
     ctx = {
         'form': form,
+        'title': title,
+        'back_url': klass.Meta.redirect_url,
+        'function_url': function_url,
+        'pk': pk,
     }
     return render(request, 'genericForm.html', context=ctx)
 
-### DRUGS ###
-'''def createDrug(request):
+def deleteGeneric(request, klass, pk, function_url, title):
+    object = get_object_or_404(klass.Meta.model, pk=pk)
     if request.method == 'POST':
-        form = DrugForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('core:drugs')
-    else:
-        form = DrugForm()
+        object.delete()
+        return redirect(klass.Meta.redirect_url)
+
     ctx = {
-        'form': form,
+        'object': object,
+        'title': title,
+        'back_url': klass.Meta.redirect_url,
+        'function_url': function_url,
+        'pk': pk,
     }
-    return render(request, 'genericForm.html', context=ctx)'''
+    return render(request, 'genericDeletion.html', context=ctx)
+
+### DRUGS ###
 
 def createDrug(request):
     return createGeneric(request, DrugForm, 'core:createDrug', 'Nuevo medicamento')
 
 def editDrug(request, pk):
-    drug = get_object_or_404(Drug, pk=pk)
-    if request.method == 'POST':
-        form = DrugForm(request.POST, instance=drug)
-        if form.is_valid():
-            form.save()
-    else:
-        form = DrugForm(instance=drug)
-    
-    ctx = {
-        'form': form,
-    }
-    return render(request, 'genericForm.html', context=ctx)
+    return editGeneric(request, DrugForm, pk, 'core:editDrug', 'Editar medicamento')
 
 
-def deleteDrug(request, pk):
+'''def deleteDrug(request, pk):
     drug = get_object_or_404(Drug, pk=pk)
     if request.method == 'POST':
         drug.delete()
@@ -87,26 +84,27 @@ def deleteDrug(request, pk):
     ctx = {
         'drug': drug,
     }
-    return render(request, 'genericDeletion.html', context=ctx)
+    return render(request, 'genericDeletion.html', context=ctx)'''
+
+def deleteDrug(request, pk):
+    return deleteGeneric(request, DrugForm, pk, 'core:deleteDrug', 'Borrar medicamento')
 
 
 def drugs(request):
-
+    # Queries
     query_generic = request.GET.get('query_generic', '')
     query_type = request.GET.get('query_type', '0')
     drugs = Drug.objects.filter( Q(name__icontains=query_generic) | Q(NDC__icontains=query_generic) )
     if query_type != '0':
         drugs = Drug.objects.filter( drugType__exact=query_type )
-        print(query_type)
-
-
+    # Paginator
     paginator = Paginator(drugs, 10)
     page = request.GET.get('page', 1)
     try:
         drugs = paginator.page(page)
     except EmptyPage:
         drugs = paginator.page(paginator.num_pages)
-
+    # Render
     ctx = {
         'drugs': drugs,
         'query_generic': query_generic,

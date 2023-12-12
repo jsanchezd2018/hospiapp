@@ -27,13 +27,6 @@ class DrugForm(ModelForm):
     }
     NDC = forms.IntegerField(widget=forms.NumberInput(attrs=NDC_attrs), label='NDC', label_suffix=' ', required=False)
     
-    '''quantity_attrs= {
-        'min': 0,
-        'class': 'field',
-        'default': 0,
-    }
-    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')'''
-    
     drugType_attrs= {
         'class': 'field',
     }

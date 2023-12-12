@@ -21,6 +21,9 @@ class Bed(models.Model):
 class DrugType(models.Model):
     name = models.CharField(max_length=20, unique=True)
 
+    def __str__(self) -> str:
+        return self.name
+
 class Drug(models.Model):
     name = models.CharField(max_length=30, unique=True)
     NDC = models.IntegerField(unique=True, null=True, blank=True)

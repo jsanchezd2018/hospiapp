@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    
+    <h2>¿Seguro que quieres borrar?</h2>
+    <h2>Hacerlo podría afectar a algunas cosas en la base de datos</h2>
+
+    <form action="{% url function_url pk %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Borrar</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
+
+</body>
+{% endblock %}

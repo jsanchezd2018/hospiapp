@@ -7,7 +7,12 @@
 <body>
     <h1>{{ title }}</h1>
     
-    <form method="post" action="{% url function_url %}">
+    <form method="post"
+    {% if pk %}
+        action="{% url function_url pk %}"
+    {% else %}
+        action="{% url function_url %}"
+    {% endif %}>
         {% csrf_token %}
         
         {% for field in form %}
@@ -16,7 +21,7 @@
         <br>
         {% endfor %}
     
-        <button type="submit">Crear</button>
+        <button type="submit">Guardar</button>
         <a href="{% url back_url %}">Cancelar</a>
     </form>
 
