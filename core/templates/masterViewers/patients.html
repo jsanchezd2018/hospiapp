@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>Pacientes</title>
+</head>
+<body>
+
+    <h1>Pacientes</h1>
+
+    <div>
+        <form action="{% url 'core:patients' %}" method="GET">
+            <label for="query_generic">Buscar por nombre:</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        <a href="{% url 'core:createPatient' %}">Nuevo paciente</a>
+    </div>
+
+    <table>
+    <tr>
+        <th>Nombre</th>
+        <th>Número de historia</th>
+        <th>Médico</th>
+        <th>Constantes</th>
+        <th>Cama</th>
+        <th>Ingresado</th>
+        <th>Fecha de ingreso</th>
+    </tr>
+    {% for patient in patients %}
+    <tr>
+        <td>{{ patient.name }}</td>
+        <td>{{ patient.historyNumer }}</td>
+        <td>{{ patient.doctor }}</td>
+        <td>{{ patient.constants }}</td>
+        <td>{{ patient.bed }}</td>
+        <td>{{ patient.verbose_admitted }}</td>
+        <td>{{ patient.admissionDate }}</td>
+        <td><a href="{% url 'core:editPatient' patient.pk %}">Editar</a></td>
+        <td><a href="{% url 'core:deletePatient' patient.pk %}">Borrar</a></td>
+    </tr>
+    {% endfor %}
+    </table>
+
+    <div class="paginator">
+        {% if patients.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ patients.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ patients.number }} / {{ patients.paginator.num_pages }}
+        </span>
+
+        {% if patients.has_next %}
+            <a href="?page={{ patients.next_page_number }}">siguiente</a>
+            <a href="?page={{ patients.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+</body>
+{% endblock %}

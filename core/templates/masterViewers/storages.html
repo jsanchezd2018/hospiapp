@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>Almacenes</title>
+</head>
+<body>
+
+    <h1>Almacenes</h1>
+
+    <div>
+        <form action="{% url 'core:storages' %}" method="GET">
+            <label for="query_generic">Buscar por nombre:</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        <a href="{% url "core:createStorage" %}">Nuevo almacén</a>
+    </div>
+
+    <table>
+    <tr>
+        <th>Nombre</th>
+    </tr>
+    {% for storage in storages %}
+    <tr>
+        <td>{{ storage.name }}</td>
+        <td><a href="{% url "core:editStorage" storage.pk %}">Editar</a></td>
+        <td><a href="{% url "core:deleteStorage" storage.pk %}">Borrar</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+    <div class="paginator">
+        {% if storages.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ storages.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ storages.number }} / {{ storages.paginator.num_pages }}
+        </span>
+
+        {% if storages.has_next %}
+            <a href="?page={{ storages.next_page_number }}">siguiente</a>
+            <a href="?page={{ storages.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+</body>
+{% endblock %}

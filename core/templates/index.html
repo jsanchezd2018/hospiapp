@@ -1,7 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+    <h1>Maestros</h1>
+
+    <h1>Medicamentos</h1>
     <a href="{% url "core:drugs" %}">Medicamentos</a>
     <a href="{% url "core:drugTypes" %}">Grupos</a>
+    <h1>Lugares físicos</h1>
+    <a href="{% url "core:storages" %}">Almacenes</a>
+    <a href="{% url "core:services" %}">Servicios</a>
+    <a href="{% url "core:beds" %}">Camas</a>
+    <h1>Personas</h1>
+    <a href="{% url "core:doctors" %}">Médicos</a>
+    <a href="{% url "core:patients" %}">Pacientes</a>
+
+    <h1>Funcionalidades</h1>
+
+
 
 {% endblock %}
