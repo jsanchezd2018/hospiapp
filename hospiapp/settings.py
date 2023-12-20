@@ -69,6 +69,14 @@ TEMPLATES = [
     },
 ]
 
+# Configuración de autenticación
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Configuración de sesiones
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 WSGI_APPLICATION = 'hospiapp.wsgi.application'
 
 

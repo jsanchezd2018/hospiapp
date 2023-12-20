@@ -31,7 +31,7 @@ class Bed(models.Model):
 
     @property
     def ocupied(self):
-        return Patient.objects.filter(bed=self.pk).acount() == 1
+        return Patient.objects.filter(bed=self).__len__() == 1
 
 
 ### DRUGS ###
@@ -70,7 +70,7 @@ class Doctor(models.Model):
 
 class User(models.Model):
     username = models.CharField(max_length=20, unique=True)
-    password = models.CharField(max_length=15)
+    password = models.CharField(max_length=20)
 
     def __str__(self) -> str:
         return self.username
@@ -82,15 +82,17 @@ class Patient(models.Model):
     history = models.CharField(max_length=500, null=True, blank=True)
     constants = models.CharField(max_length=50, null=True, blank=True)
     bed = models.ForeignKey(Bed, on_delete=models.SET_NULL, null=True, blank=True)
-    admitted = models.BooleanField(default=True)
     admissionDate = models.DateField(null=True, blank=True)
 
     def __str__(self) -> str:
         return self.name
     
     @property
-    def verbose_admitted(self):
-        return genericBooleanVerbose(self.admitted)
+    def verbose_admissionDate(self):
+        if self.admissionDate:
+            return self.admissionDate
+        else:
+            return 'No ingresado/a'
     
 
 ### LAB ###
@@ -148,5 +150,5 @@ class Blood(models.Model):
     capacity = models.IntegerField() #mililiters
     date = models.DateTimeField()
     tests = models.IntegerField()
-    reserved = models.BooleanField(default=False)
+    reserved = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True)
     

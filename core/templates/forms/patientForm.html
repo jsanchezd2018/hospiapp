@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+
+    <h2>Ubicación de cama de ingreso</h2>
+    <label for="query_service">Servicio</label>
+    <select id="query_service"  name="query_service" onchange="filter()">
+        <option value="0"></option>
+        {% for service in services %}
+        <option value="{{ service.pk }}">{{ service }}</option>
+        {% endfor %}
+    </select>
+    <br>
+    <label for="query_floor">Planta</label>
+    <input type="number" id="query_floor" name="query_floor" onchange="filter()">
+    <br>
+
+    <h2>Ubicación de cama de ingreso</h2>
+    <form method="post"
+    {% if pk %}
+        action="{% url function_url pk %}"
+    {% else %}
+        action="{% url function_url %}"
+    {% endif %}>
+        {% csrf_token %}
+        {% for field in form %}
+        {{ field.label_tag }}{{ field }}
+        {{ field.errors }}
+        <br>
+        {% endfor %}
+    
+        <button type="submit">Guardar</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
+
+    <script>
+        function filter() {
+
+            var bed_selector = document.getElementById("bed_selector");
+            bed_selector.innerHTML = '';
+
+            var query_service_value = document.getElementById("query_service").value;
+            var query_floor_value = document.getElementById("query_floor").value;
+            if(query_floor_value == ''){ query_floor_value = '0' }
+
+            fetch('http://127.0.0.1:8000/filter/' + query_service_value + '/' + query_floor_value)
+            .then(response => {return response.json();})
+            .then(json => {
+                bed_selector.add(new Option('-------', '0'), undefined);
+                json.result.forEach(bed => {
+                    bed_selector.add(new Option(bed['value'], bed['key']), undefined);
+                });
+            });
+        }
+        filter();
+    </script>
+
+</body>
+{% endblock %}

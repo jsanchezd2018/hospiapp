@@ -25,7 +25,6 @@
         <th>Médico</th>
         <th>Constantes</th>
         <th>Cama</th>
-        <th>Ingresado</th>
         <th>Fecha de ingreso</th>
     </tr>
     {% for patient in patients %}
@@ -35,8 +34,7 @@
         <td>{{ patient.doctor }}</td>
         <td>{{ patient.constants }}</td>
         <td>{{ patient.bed }}</td>
-        <td>{{ patient.verbose_admitted }}</td>
-        <td>{{ patient.admissionDate }}</td>
+        <td>{{ patient.verbose_admissionDate }}</td>
         <td><a href="{% url 'core:editPatient' patient.pk %}">Editar</a></td>
         <td><a href="{% url 'core:deletePatient' patient.pk %}">Borrar</a></td>
     </tr>

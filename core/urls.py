@@ -1,7 +1,11 @@
 from django.urls import include, path
+from django.contrib.auth.views import LoginView
+
 from . import views
 
 app_name = 'core'
+
+### MASTERS ###
 
 ### PHYSICAL PLACES ###
 storage_patterns = [
@@ -56,15 +60,16 @@ doctor_patterns = [
     path('eliminar/<int:pk>', views.deleteDoctor, name='deleteDoctor'),
 ]
 
-'''user_patterns = [
+user_patterns = [
     path('', views.users, name='users'),
     path('crear/', views.createUser, name='createUser'),
     path('editar/<int:pk>', views.editUser, name='editUser'),
     path('eliminar/<int:pk>', views.deleteUser, name='deleteUser'),
-]'''
+]
 
 patient_patterns = [
     path('', views.patients, name='patients'),
+    path('gestion/', views.patientsManagement, name='patientsManagement'),
     path('crear/', views.createPatient, name='createPatient'),
     path('editar/<int:pk>', views.editPatient, name='editPatient'),
     path('eliminar/<int:pk>', views.deletePatient, name='deletePatient'),
@@ -85,8 +90,14 @@ urlpatterns = [
     #path('almacenados/', include(storagedDrug_patterns)),
     # people
     path('medicos/', include(doctor_patterns)),
-    #path('usuarios/', include(users_patterns)),
+    path('usuarios/', include(user_patterns)),
     path('pacientes/', include(patient_patterns)),
 
-    
+    # login / logout
+    #path('login/', views.userLogin, name='userLogin'),
+    path('accounts/login/', LoginView.as_view(), name='login'),
+    path('logout/', views.userLogout, name='userLogout'),
+
+    # backend functions
+    path('filter/<int:pk_service>/<int:floor>', views.filter, name='filter'),
 ]

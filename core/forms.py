@@ -1,7 +1,8 @@
 from django import forms
 
-from django.forms import ModelForm
+from django.forms import ModelForm, Select
 from core.models import *
+
 
 
 ### PHYSICAL PLACES ###
@@ -125,13 +126,29 @@ class DoctorForm(ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
     
     
-### TODO: De momento usuario se queda sin hacer ###
+class UserForm(ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'password']
+        redirect_url = 'core:users'
+        
+    username_attrs= {
+        'max_length': 20,
+        'class': 'field',
+    }
+    username = forms.CharField(widget=forms.TextInput(attrs=username_attrs), label='Nombre de usuario', label_suffix=' ')
+
+    password_attrs = {
+    'max_length': 20,
+    'class': 'field',
+    }
+    password = forms.CharField(widget=forms.PasswordInput(attrs=password_attrs), label='Contraseña', label_suffix=' ')
 
 
 class PatientForm(ModelForm):
     class Meta:
         model = Patient
-        fields = ['name', 'historyNumer', 'doctor', 'history', 'constants', 'bed', 'admitted', 'admissionDate']
+        fields = ['name', 'historyNumer', 'doctor', 'history', 'constants', 'bed', 'admissionDate']
         redirect_url = 'core:patients'
         
     name_attrs= {
@@ -165,13 +182,9 @@ class PatientForm(ModelForm):
 
     bed_attrs = {
         'class': 'field',
+        'id': 'bed_selector'
     }
     bed = forms.ModelChoiceField(queryset=Bed.objects.all(), widget=forms.Select(attrs=bed_attrs), label='Cama', label_suffix=' ', required=False)
-
-    admitted_attrs = {
-        'class': 'field',
-    }
-    admitted = forms.BooleanField(widget=forms.CheckboxInput(attrs=admitted_attrs), label='Ingresado', required=False)
 
     admissionDate_attrs = {
         'class': 'field',
