@@ -2,50 +2,175 @@
 
 {% block content %}
 <head>
-    <title>Médicos</title>
+    <title>Pacientes</title>
 </head>
 <body>
 
-    <h1>Médicos</h1>
+    <h1>Pacientes</h1>
 
     <div>
-        <form action="{% url 'core:doctors' %}" method="GET">
-            <label for="query_generic">Buscar por nombre:</label>
+        <form action="{% url 'core:patientsManagement' %}" method="GET">
+            <label for="query_generic">Buscar por nombre o nº historia:</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
             <br>
+            <label for="query_doctor">Buscar por doctor asignado:</label>
+            <select id="query_doctor"  name="query_doctor">
+                <option value="0"></option>
+                {% for doctor in doctors %}
+                <option value="{{ doctor.pk }}" {% if query_doctor == doctor.pk %}selected{% endif %} >{{ doctor }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <h3>Buscar por cama</h3>
+            <label for="query_service">Servicio</label>
+            <select id="query_service"  name="query_service" onchange="filterInManagement()">
+                <option value="0"></option>
+                {% for service in services %}
+                <option value="{{ service.pk }}" {% if query_service == service.pk %}selected{% endif %} >{{ service }}</option>
+                {% endfor %}
+            </select>
+            <label for="query_floor">Planta</label>
+            <input type="number" id="query_floor" name="query_floor" onchange="filterInManagement()" value={{ query_floor }}>
+            <label for="query_bed">Cama</label>
+            <select name="query_bed" class="field" id="bed_selector"></select>
+            {% for bed in beds %}
+            {% if query_bed == bed.pk %}selected{% endif %}
+            {% endfor %}
             <button type="submit">Buscar</button>
         </form>
-        <a href="{% url "core:createDoctor" %}">Nuevo médico</a>
+        <a href="{% url "core:createPatient" %}">Ingresar nuevo paciente</a>
     </div>
 
-    <table>
-    <tr>
-        <th>Nombre</th>
-    </tr>
-    {% for doctor in doctors %}
-    <tr>
-        <td>{{ doctor.name }}</td>
-        <td><a href="{% url "core:editDoctor" doctor.pk %}">Editar</a></td>
-        <td><a href="{% url "core:deleteDoctor" doctor.pk %}">Borrar</a></td>
-    </tr>
-    {% endfor %}
-</table>
+    <div class="grid">
+        <div class="viewer">
+            <h3>Datos del paciente</h3>
+            <table>
+                <tr>
+                    <td>Nombre</td>
+                    <td id='view_name'> </td>
+                </tr>
+                <tr>
+                    <td>Número de historia</td>
+                    <td id='view_historyNumber'> </td>
+                </tr>
+                <tr>
+                    <td>Médico asignado</td>
+                    <td id='view_doctor'> </td>
+                </tr>
+                <tr>
+                    <td>Fecha de ingreso</td>
+                    <td id='view_date'> </td>
+                </tr>
+                <tr>
+                    <td>Constantes</td>
+                    <td id='view_constants'> </td>
+                </tr>
+                <tr>
+                    <td>Historial</td>
+                    <td id='view_history'> </td>
+                </tr>
+            </table>
+            <h3>Cama asignada</h3>
+            <table>
+                <tr>
+                    <td>Cama</td>
+                    <td id='view_bed'> </td>
+                </tr>
+                <tr>
+                    <td>Planta</td>
+                    <td id='view_floor'> </td>
+                </tr>
+                <tr>
+                    <td>Servicio</td>
+                    <td id='view_service'> </td>
+                </tr>
+            </table>
+        </div>
+        <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Número de historia</th>
+            <th>Médico</th>
+            <th>Cama</th>
+            <th>Fecha de ingreso</th>
+        </tr>
+        {% for patient in patients %}
+        <tr class="clickable" id="{{ patient.pk }}">
+            <td>{{ patient.name }}</td>
+            <td>{{ patient.verbose_historyNumber }}</td>
+            <td>{{ patient.verbose_doctor }}</td>
+            <td>{{ patient.verbose_bed }}</td>
+            <td>{{ patient.verbose_admissionDate }}</td>
+            <td><a href="{% url 'core:editPatient' patient.pk %}">Modificar datos / Ingresar</a></td>
+            <td><a href="{% url 'core:dischargePatient' patient.pk %}">Dar el alta</a></td>
+        </tr>
+        {% endfor %}
+        </table>
+    </div>
 
     <div class="paginator">
-        {% if doctors.has_previous %}
+        {% if patients.has_previous %}
             <a href="?page=1">&laquo; primera</a>
-            <a href="?page={{ doctors.previous_page_number }}">anterior</a>
+            <a href="?page={{ patients.previous_page_number }}">anterior</a>
         {% endif %}
 
         <span class="current">
-            {{ doctors.number }} / {{ doctors.paginator.num_pages }}
+            {{ patients.number }} / {{ patients.paginator.num_pages }}
         </span>
 
-        {% if doctors.has_next %}
-            <a href="?page={{ doctors.next_page_number }}">siguiente</a>
-            <a href="?page={{ doctors.paginator.num_pages }}">última &raquo;</a>
+        {% if patients.has_next %}
+            <a href="?page={{ patients.next_page_number }}">siguiente</a>
+            <a href="?page={{ patients.paginator.num_pages }}">última &raquo;</a>
         {% endif %}
     </div>
+
+    <script>
+
+        function view(pk) {
+            fetch('{{backendURL}}' + 'viewPatient/' + pk)
+            .then(response => {return response.json();})
+            .then(json => {
+                document.getElementById('view_name').textContent = json.backendPatient_name
+                document.getElementById('view_historyNumber').textContent = json.backendPatient_historyNumber
+                document.getElementById('view_doctor').textContent = json.backendPatient_doctor
+                document.getElementById('view_constants').textContent = json.backendPatient_constants
+                document.getElementById('view_date').textContent = json.backendPatient_admissionDate
+                document.getElementById('view_history').textContent = json.backendPatient_history
+                document.getElementById('view_bed').textContent = json.backendBed_name
+                document.getElementById('view_floor').textContent = json.backendBed_floor
+                document.getElementById('view_service').textContent = json.backendBed_service
+            });
+        }
+
+        var clickables = document.querySelectorAll('.clickable');
+
+        clickables.forEach(function(element) {
+            element.addEventListener('click', function(){
+                view(element.id);
+            });
+        });
+
+        function filterInManagement() {
+
+            var bed_selector = document.getElementById("bed_selector");
+            bed_selector.innerHTML = '';
+
+            var query_service_value = document.getElementById("query_service").value;
+            var query_floor_value = document.getElementById("query_floor").value;
+            if(query_floor_value == ''){ query_floor_value = '0' }
+
+            fetch('http://127.0.0.1:8000/filterInManagement/' + query_service_value + '/' + query_floor_value)
+            .then(response => {return response.json();})
+            .then(json => {
+                bed_selector.add(new Option('', '0'), undefined);
+                json.result.forEach(bed => {
+                    bed_selector.add(new Option(bed['value'], bed['key']), undefined);
+                });
+            });
+        }
+        filterInManagement();
+
+    </script>
 
 </body>
 {% endblock %}

@@ -20,7 +20,7 @@
     <input type="number" id="query_floor" name="query_floor" onchange="filter()">
     <br>
 
-    <h2>Ubicación de cama de ingreso</h2>
+    <h2>Datos del paciente</h2>
     <form method="post"
     {% if pk %}
         action="{% url function_url pk %}"
@@ -51,7 +51,7 @@
             fetch('http://127.0.0.1:8000/filter/' + query_service_value + '/' + query_floor_value)
             .then(response => {return response.json();})
             .then(json => {
-                bed_selector.add(new Option('-------', '0'), undefined);
+                bed_selector.add(new Option('-------', ''), undefined);
                 json.result.forEach(bed => {
                     bed_selector.add(new Option(bed['value'], bed['key']), undefined);
                 });

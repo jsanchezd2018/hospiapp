@@ -70,6 +70,7 @@ user_patterns = [
 patient_patterns = [
     path('', views.patients, name='patients'),
     path('gestion/', views.patientsManagement, name='patientsManagement'),
+    path('alta/<int:pk>', views.dischargePatient, name='dischargePatient'),
     path('crear/', views.createPatient, name='createPatient'),
     path('editar/<int:pk>', views.editPatient, name='editPatient'),
     path('eliminar/<int:pk>', views.deletePatient, name='deletePatient'),
@@ -77,6 +78,9 @@ patient_patterns = [
 
 
 ### URL PATTERNS ###
+
+backendURL = 'http://127.0.0.1:8000/'
+
 urlpatterns = [
     # Index
     path('', views.index, name='index'),
@@ -100,4 +104,6 @@ urlpatterns = [
 
     # backend functions
     path('filter/<int:pk_service>/<int:floor>', views.filter, name='filter'),
+    path('filterInManagement/<int:pk_service>/<int:floor>', views.filterInManagement, name='filterInManagement'),
+    path('viewPatient/<int:pk>', views.viewPatient, name='viewPatient'),
 ]

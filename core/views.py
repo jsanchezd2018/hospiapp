@@ -1,11 +1,12 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, logout
+from core import urls
 
 
 from .forms import *
@@ -100,7 +101,7 @@ def deleteStorage(request, pk):
 def storages(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    storages = Storage.objects.filter( name__icontains=query_generic )
+    storages = Storage.objects.filter( name__icontains=query_generic ).order_by('name')
     # Paginator
     paginator = Paginator(storages, N)
     page = request.GET.get('page', 1)
@@ -137,7 +138,7 @@ def deleteService(request, pk):
 def services(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    services = Service.objects.filter( name__icontains=query_generic )
+    services = Service.objects.filter( name__icontains=query_generic ).order_by('name')
     # Paginator
     paginator = Paginator(services, N)
     page = request.GET.get('page', 1)
@@ -174,9 +175,11 @@ def deleteBed(request, pk):
 def beds(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    query_floor = request.GET.get('query_generic', '0')
-    query_service = request.GET.get('query_generic', '0')
-    beds = Bed.objects.filter( Q(name__icontains=query_generic) | Q(floor__exact=query_floor) )
+    query_floor = request.GET.get('query_floor', '')
+    query_service = request.GET.get('query_service', '0')
+    beds = Bed.objects.filter(name__icontains=query_generic).order_by('name')
+    if query_floor != '':
+        beds = beds.filter(floor__exact=query_floor)
     if query_service != '0':
         beds = beds.filter( service__exact=query_service )
     # Paginator
@@ -189,9 +192,10 @@ def beds(request):
     # Render
     ctx = {
         'beds': beds,
+        'services': Service.objects.all(),
         'query_generic': query_generic,
         'query_floor': query_floor,
-        'query_service': query_service,
+        'query_service': int(query_service),
     }
     return render(request, 'masterViewers/beds.html', context=ctx)
 
@@ -220,7 +224,7 @@ def drugs(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
     query_type = request.GET.get('query_type', '0')
-    drugs = Drug.objects.filter( Q(name__icontains=query_generic) | Q(NDC__icontains=query_generic) )
+    drugs = Drug.objects.filter( Q(name__icontains=query_generic) | Q(NDC__icontains=query_generic) ).order_by('name')
     if query_type != '0':
         drugs = drugs.filter( drugType__exact=query_type )
     # Paginator
@@ -261,7 +265,7 @@ def deleteDrugType(request, pk):
 def drugTypes(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    drugTypes = DrugType.objects.filter( name__icontains=query_generic )
+    drugTypes = DrugType.objects.filter( name__icontains=query_generic ).order_by('name')
     # Paginator
     paginator = Paginator(drugTypes, N)
     page = request.GET.get('page', 1)
@@ -300,7 +304,7 @@ def deleteStoragedDrug(request, pk):
 def storagedDrugs(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    storagedDrugs = StoragedDrug.objects.filter( name__icontains=query_generic )
+    storagedDrugs = StoragedDrug.objects.filter( name__icontains=query_generic ).order_by('drug.name')
     # Paginator
     paginator = Paginator(storagedDrugs, N)
     page = request.GET.get('page', 1)
@@ -359,7 +363,7 @@ def deleteDoctor(request, pk):
 def doctors(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    doctors = Doctor.objects.filter( Q(name__icontains=query_generic) )
+    doctors = Doctor.objects.filter( Q(name__icontains=query_generic) ).order_by('name')
     # Paginator
     paginator = Paginator(doctors, N)
     page = request.GET.get('page', 1)
@@ -408,7 +412,7 @@ def deleteUser(request, pk):
 def users(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    users = User.objects.filter(Q(name__icontains=query_generic))
+    users = User.objects.filter(Q(name__icontains=query_generic)).order_by('username')
     # Paginator
     paginator = Paginator(users, N)
     page = request.GET.get('page', 1)
@@ -440,17 +444,9 @@ def userLogout(request):
     logout(request)
     return redirect('index.html')
 
+
 ### PATIENTS ###
-'''@csrf_protect
-@login_required
-def createPatient(request):
-    return createGeneric(request, PatientForm, 'core:createPatient', 'Nuevo paciente')'''
-
-@csrf_protect
-@login_required
-def editPatient(request, pk):
-    return editGeneric(request, PatientForm, pk, 'core:editPatient', 'Editar paciente')
-
+### MASTER PART ###
 @csrf_protect
 @login_required
 def deletePatient(request, pk):
@@ -461,7 +457,7 @@ def deletePatient(request, pk):
 def patients(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    patients = Patient.objects.filter( Q(name__icontains=query_generic) )
+    patients = Patient.objects.filter( Q(name__icontains=query_generic) ).order_by('name')
     # Paginator
     paginator = Paginator(patients, N)
     page = request.GET.get('page', 1)
@@ -476,12 +472,22 @@ def patients(request):
     }
     return render(request, 'masterViewers/patients.html', context=ctx)
 
+
+### FUNCTIONALITY PART ###
 @csrf_protect
 @login_required
 def patientsManagement(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    patients = Patient.objects.filter( Q(name__icontains=query_generic) )
+    query_doctor = request.GET.get('query_doctor', '0')
+    query_bed = request.GET.get('query_bed', '0')
+    query_floor = request.GET.get('query_floor', '')
+    query_service = request.GET.get('query_service', '0')
+    patients = Patient.objects.filter(name__icontains=query_generic).order_by('name')
+    if(query_doctor != '0'):
+        patients = patients.filter(doctor__exact=query_doctor)
+    if(query_bed != '0'):
+        patients = patients.filter(bed__exact=query_bed)
     # Paginator
     paginator = Paginator(patients, N)
     page = request.GET.get('page', 1)
@@ -492,9 +498,18 @@ def patientsManagement(request):
     # Render
     ctx = {
         'patients': patients,
+        'doctors': Doctor.objects.all(),
+        'backendURL': urls.backendURL,
         'query_generic': query_generic,
+        'query_doctor': int(query_doctor),
+        'query_bed': int(query_bed),
+        'query_floor': query_floor,
+        'query_service': int(query_service),
+        'backendURL': urls.backendURL,
+        'services': Service.objects.all(),
+        'bed': Bed.objects.all(),
     }
-    return render(request, 'masterViewers/patients.html', context=ctx)
+    return render(request, 'functionalities/patientsManagement.html', context=ctx)
 
 @csrf_protect
 @login_required
@@ -512,31 +527,42 @@ def createPatient(request):
         'title': 'Ingresar paciente nuevo',
         'back_url': 'core:patientsManagement',
         'function_url': 'core:createPatient',
+        'backendURL': urls.backendURL,
+        'services': Service.objects.all(),
+    }
+    return render(request, 'forms/patientForm.html', context=ctx)
+
+@csrf_protect
+@login_required
+def editPatient(request, pk):
+    object = get_object_or_404(Patient, pk=pk)
+    if request.method == 'POST':
+        form = PatientForm(request.POST, instance=object)
+        if form.is_valid():
+            form.save()
+            return redirect('core:patientsManagement')
+    else:
+        form = PatientForm(instance=object)
+    
+    ctx = {
+        'form': form,
+        'title': 'Ingresar paciente existente / Cambiar información del paciente',
+        'back_url': 'core:patientsManagement',
+        'function_url': 'core:editPatient',
+        'pk': pk,
         'services': Service.objects.all()
     }
     return render(request, 'forms/patientForm.html', context=ctx)
 
 @csrf_protect
 @login_required
-def setBed(request, function_url, title):
-    if request.method == 'POST':
-        form = PatientForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('core:setBed', form)
-    else:
-        form = PatientForm()
+def dischargePatient(request, pk):
+    patient = get_object_or_404(Patient, pk=pk)
+    patient.admissionDate = None
+    patient.bed = None
+    patient.save()
+    return redirect('core:patientsManagement')
     
-    ctx = {
-        'form': form,
-        'title': title,
-        'back_url': 'core:patientsManagement',
-        'function_url': function_url
-    }
-    return render(request, 'genericForm.html', context=ctx)
-
-
-
 
 ### BACKEND FUNCTIONS ###
 @csrf_protect
@@ -550,8 +576,60 @@ def filter(request, pk_service, floor):
         result = []
         for bed in beds:
             if not bed.ocupied:
-                print(bed.ocupied)
                 result.append({'key': bed.pk, 'value': bed.name})
         return JsonResponse({'result': result})
+    else:
+        return JsonResponse({})
+    
+
+@csrf_protect
+@csrf_protect
+@login_required
+def filterInManagement(request, pk_service, floor):
+    if request.method == 'GET':
+        beds = Bed.objects.all()
+        if(pk_service != 0): beds = beds.filter(service__exact=pk_service)
+        if(floor != 0): beds = beds.filter(floor__exact=floor)
+        result = []
+        for bed in beds:
+            result.append({'key': bed.pk, 'value': bed.name})
+        return JsonResponse({'result': result})
+    else:
+        return JsonResponse({})
+    
+
+@csrf_protect
+@csrf_protect
+@login_required
+def viewPatient(request, pk):
+    if request.method == 'GET':
+
+        patient = get_object_or_404(Patient, pk=pk)
+        if patient.doctor:
+            patient_doctor = patient.doctor.name
+        else:
+            patient_doctor = 'Sin asignar'
+        
+        if patient.bed:
+            bed = get_object_or_404(Bed, pk=patient.bed.pk)
+            bed_name = bed.name
+            bed_floor = bed.floor
+            bed_service = bed.service.name
+        else:
+            bed_name = 'Sin asignar'
+            bed_floor = 'Sin asignar'
+            bed_service = 'Sin asignar'
+        
+        return JsonResponse({
+                                'backendPatient_name': patient.name,
+                                'backendPatient_historyNumber': str(patient.verbose_historyNumber).zfill(HISTORY_NUMBER_LENGTH),
+                                'backendPatient_doctor': patient_doctor,
+                                'backendPatient_constants': patient.verbose_constants,
+                                'backendPatient_admissionDate': patient.verbose_admissionDate,
+                                'backendPatient_history': patient.verbose_history,
+                                'backendBed_name': bed_name,
+                                'backendBed_floor': bed_floor,
+                                'backendBed_service': bed_service,
+                            })
     else:
         return JsonResponse({})

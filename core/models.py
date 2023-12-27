@@ -1,11 +1,20 @@
 from django.db import models
 
+### CONSTANTS ###
+HISTORY_NUMBER_LENGTH = 14
+
+### AUXILIAR FUNCTIONS ###
 def genericBooleanVerbose(bool):
     if bool:
         return 'Sí'
     else:
         return 'No'
 
+def genericNoneVerbose(potencialNone):
+    if potencialNone:
+        return potencialNone
+    else:
+        return 'Sin asignar'
 
 
 ### PHYSICAL PLACES ###
@@ -48,6 +57,13 @@ class Drug(models.Model):
 
     def __str__(self) -> str:
         return self.name
+    
+    @property
+    def verbose_NDC(self):
+        return genericNoneVerbose(self.NDC)
+    @property
+    def verbose_drugType(self):
+        return genericNoneVerbose(self.drugType)
 
 class StoragedDrug(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE)
@@ -59,6 +75,10 @@ class StoragedDrug(models.Model):
 
     def __str__(self) -> str:
         return self.drug.name
+    
+    @property
+    def verbose_storage(self):
+        return genericNoneVerbose(self.storage)
 
 
 ### PEOPLE ###
@@ -77,7 +97,7 @@ class User(models.Model):
 
 class Patient(models.Model):
     name = models.CharField(max_length=30)
-    historyNumer = models.IntegerField(unique=True, null=True, blank=True)
+    historyNumber = models.CharField(max_length=HISTORY_NUMBER_LENGTH, unique=True, null=True, blank=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
     history = models.CharField(max_length=500, null=True, blank=True)
     constants = models.CharField(max_length=50, null=True, blank=True)
@@ -88,11 +108,24 @@ class Patient(models.Model):
         return self.name
     
     @property
+    def verbose_historyNumber(self):
+        return genericNoneVerbose(self.historyNumber)
+    @property
+    def verbose_doctor(self):
+        return genericNoneVerbose(self.doctor)
+    @property
+    def verbose_constants(self):
+        return genericNoneVerbose(self.constants)
+    @property
+    def verbose_history(self):
+        return genericNoneVerbose(self.history)
+    @property
+    def verbose_bed(self):
+        return genericNoneVerbose(self.bed)
+    @property
     def verbose_admissionDate(self):
-        if self.admissionDate:
-            return self.admissionDate
-        else:
-            return 'No ingresado/a'
+        return genericNoneVerbose(self.admissionDate)
+    
     
 
 ### LAB ###
@@ -117,10 +150,16 @@ class LabMaterial(models.Model):
     name = models.CharField(max_length=20, unique=True)
     materialType = models.CharField(max_length=1)
 
+    def __str__(self) -> str:
+        return self.name
+
 class StoragedLabMaterial(models.Model):
     labMaterial = models.ForeignKey(LabMaterial, on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
     quantity = models.IntegerField()
+
+    def __str__(self) -> str:
+        return self.labMaterial.name
 
     class Meta:
         models.UniqueConstraint(fields=['labMaterial', 'storage'], name='no_multiplicity')
@@ -130,6 +169,9 @@ class Sample(models.Model):
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateTimeField()
+
+    def __str__(self) -> str:
+        return self.patient.name + '_' + self.sampleType.value + '_' + self.date
 
 
 ### BLOOD ###
@@ -147,8 +189,10 @@ bloodGroups = {
 
 class Blood(models.Model):
     bloodGroup = models.CharField(max_length=1)
-    capacity = models.IntegerField() #mililiters
+    capacity = models.IntegerField()
     date = models.DateTimeField()
     tests = models.IntegerField()
     reserved = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True)
     
+    def __str__(self) -> str:
+        return self.pk

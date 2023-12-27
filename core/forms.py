@@ -1,7 +1,8 @@
 from django import forms
 
-from django.forms import ModelForm, Select
+from django.forms import ModelForm
 from core.models import *
+from django.core.validators import MinLengthValidator
 
 
 
@@ -148,7 +149,7 @@ class UserForm(ModelForm):
 class PatientForm(ModelForm):
     class Meta:
         model = Patient
-        fields = ['name', 'historyNumer', 'doctor', 'history', 'constants', 'bed', 'admissionDate']
+        fields = ['name', 'historyNumber', 'doctor', 'history', 'constants', 'bed', 'admissionDate']
         redirect_url = 'core:patients'
         
     name_attrs= {
@@ -157,11 +158,11 @@ class PatientForm(ModelForm):
     }
     name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
 
-    historyNumer_attrs = {
-        'max_length': 14,
+    historyNumber_attrs = {
+        'max_length': HISTORY_NUMBER_LENGTH,
         'class': 'field',
     }
-    historyNumer = forms.IntegerField(widget=forms.NumberInput(attrs=historyNumer_attrs), label='Número de Historia', label_suffix=' ', required=False)
+    historyNumber = forms.CharField(widget=forms.TextInput(attrs=historyNumber_attrs), label='Número de Historia', label_suffix=' ', required=False, validators=[MinLengthValidator(HISTORY_NUMBER_LENGTH)])
 
     doctor_attrs = {
         'class': 'field',
@@ -189,7 +190,7 @@ class PatientForm(ModelForm):
     admissionDate_attrs = {
         'class': 'field',
     }
-    admissionDate = forms.DateField(widget=forms.DateInput(attrs=admissionDate_attrs), label='Fecha de ingreso', label_suffix=' ', required=False)
+    admissionDate = forms.DateField(widget=forms.DateInput(attrs=admissionDate_attrs), label='Fecha de ingreso', label_suffix=' ')
 
 
 ### LAB ###
