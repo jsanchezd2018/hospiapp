@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+
+    <h2>Datos del medicamento</h2>
+    <table>
+        <tr>
+            <td>Medicamento</td>
+            <td> {{drug}} </td>
+        </tr>
+        <tr>
+            <td>Almacén</td>
+            <td> {{ storage }}</td>
+        </tr>
+    </table>
+
+    <form method="post" action="{% url function_url pk %}">
+        {% csrf_token %}
+        {% for field in form %}
+        {{ field.label_tag }}{{ field }}
+        {{ field.errors }}
+        <br>
+        {% endfor %}
+    
+        <button type="submit">Guardar</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
+
+</body>
+{% endblock %}

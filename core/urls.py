@@ -5,14 +5,12 @@ from . import views
 
 app_name = 'core'
 
-### MASTERS ###
-
 ### PHYSICAL PLACES ###
 storage_patterns = [
     path('', views.storages, name='storages'),
     path('crear', views.createStorage, name='createStorage'),
     path('editar/<int:pk>', views.editStorage, name='editStorage'),
-    path('eliminar/<int:pk>', views.deleteStorage, name='deletebed'),
+    path('eliminar/<int:pk>', views.deleteStorage, name='deleteStorage'),
 ]
 
 service_patterns = [
@@ -45,11 +43,10 @@ drugType_patterns = [
 ]
 
 storagedDrug_patterns = [
-    path('<int:storage>', views.storagedDrugs, name='storagedDrugs'),
+    path('', views.storagedDrugs, name='storagedDrugs'),
     path('crear/<int:storage>', views.createStoragedDrug, name='createStoragedDrug'),
-    path('editar/<int:storage>/<int:pk>', views.editStoragedDrug, name='editStoragedDrug'),
-    path('eliminar/<int:storage>/<int:pk>', views.deleteStoragedDrug, name='deleteStoragedDrug'),
-    path('consumir/<int:storage>/<int:pk>', views.consumeStoragedDrug, name='consumeStoragedDrug'),
+    path('editar/<int:pk>', views.editStoragedDrug, name='editStoragedDrug'),
+    path('consumir/<int:pk>', views.consumeStoragedDrug, name='consumeStoragedDrug'),
 ]
 
 ### PEOPLE ###
@@ -91,7 +88,7 @@ urlpatterns = [
     # drugs
     path('medicamentos/', include(drug_patterns)),
     path('grupos/', include(drugType_patterns)),
-    #path('almacenados/', include(storagedDrug_patterns)),
+    path('farmacia/', include(storagedDrug_patterns)),
     # people
     path('medicos/', include(doctor_patterns)),
     path('usuarios/', include(user_patterns)),
@@ -104,6 +101,9 @@ urlpatterns = [
 
     # backend functions
     path('filter/<int:pk_service>/<int:floor>', views.filter, name='filter'),
+    path('filterByGroup/<int:group>', views.filterByGroup, name='filterByGroup'),
     path('filterInManagement/<int:pk_service>/<int:floor>', views.filterInManagement, name='filterInManagement'),
     path('viewPatient/<int:pk>', views.viewPatient, name='viewPatient'),
+    path('viewStoragedDrug/<int:pk>', views.viewStoragedDrug, name='viewStoragedDrug'),
+
 ]

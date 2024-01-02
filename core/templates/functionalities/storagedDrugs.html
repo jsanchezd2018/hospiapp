@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>Farmacia</title>
+</head>
+<body>
+
+    <h1>Farmacia</h1>
+
+    <div>
+        <form action="{% url 'core:storagedDrugs' %}" method="GET">
+            <label for="query_generic">Buscar por nombre del medicamento:</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <label for="query_type">Buscar por grupo de medicamento:</label>
+            <select id="query_type"  name="query_type">
+                <option value="0"></option>
+                {% for type in types %}
+                <option value="{{ type.pk }}" {% if query_type == type.pk %}selected{% endif %} >{{ type }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="query_storage">Buscar por almacén:</label>
+            <select id="query_storage"  name="query_storage">
+                <option value=""></option>
+                {% for storage in storages %}
+                <option value="{{ storage.pk }}" {% if query_storage == storage.pk %}selected{% endif %} >{{ storage }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        {% if query_storage %}<a href="{% url "core:createStoragedDrug" query_storage %}">Añadir medicamento al almacén</a>{% endif %}
+    </div>
+
+    <div class="grid">
+        <div class="viewer">
+            <h3>Datos del medicamento</h3>
+            <table>
+                <tr>
+                    <td>Medicamento</td>
+                    <td id='view_drug'> </td>
+                </tr>
+                <tr>
+                    <td>NDC</td>
+                    <td id='view_NDC'> </td>
+                </tr>
+                <tr>
+                    <td>Grupo de medicamentos</td>
+                    <td id='view_type'> </td>
+                </tr>
+                <tr>
+                    <td>Almacén</td>
+                    <td id='view_storage'> </td>
+                </tr>
+                <tr>
+                    <td>Cantidad</td>
+                    <td id='view_quantity'> </td>
+                </tr>
+                <tr>
+                    <td>Fecha caducidad</td>
+                    <td id='view_date'> </td>
+                </tr>
+                <tr>
+                    <td>Cantidad total</td>
+                    <td id='view_total'> </td>
+                </tr>
+            </table>
+        </div>
+
+        <table>
+        <tr>
+            <th>Medicamento</th>
+            <th>Almacén</th>
+            <th>Cantidad</th>
+            <th>Fecha de caducidad</th>
+        </tr>
+        {% for storagedDrug in storagedDrugs %}
+        <tr class="clickable" id="{{ storagedDrug.pk }}">
+            <td>{{ storagedDrug.drug }}</td>
+            <td>{{ storagedDrug.verbose_storage }}</td>
+            <td>{{ storagedDrug.quantity }}</td>
+            <td>{{ storagedDrug.verbose_expirationDate }}</td>
+            <td><a href="{% url 'core:editStoragedDrug' storagedDrug.pk %}">Alterar cantidad</a></td>
+            <td><a href="{% url 'core:consumeStoragedDrug' storagedDrug.pk %}">Consumir</a></td>
+        </tr>
+        {% endfor %}
+        </table>
+    </div>
+
+    <div class="paginator">
+        {% if storagedDrugs.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ storagedDrugs.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ storagedDrugs.number }} / {{ storagedDrugs.paginator.num_pages }}
+        </span>
+
+        {% if storagedDrugs.has_next %}
+            <a href="?page={{ storagedDrugs.next_page_number }}">siguiente</a>
+            <a href="?page={{ storagedDrugs.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+
+    <script>
+
+        function view(pk) {
+            fetch('{{backendURL}}' + 'viewStoragedDrug/' + pk)
+            .then(response => {return response.json();})
+            .then(json => {
+                document.getElementById('view_drug').textContent = json.BackendStoragedDrug_name
+                document.getElementById('view_NDC').textContent = json.BackendStoragedDrug_NDC
+                document.getElementById('view_type').textContent = json.BackendStoragedDrug_drugType
+                document.getElementById('view_storage').textContent = json.BackendStoragedDrug_storage
+                document.getElementById('view_quantity').textContent = json.BackendStoragedDrug_quantity
+                document.getElementById('view_date').textContent = json.BackendStoragedDrug_expirationDate
+                document.getElementById('view_total').textContent = json.BackendStoragedDrug_total
+            });
+        }
+
+        var clickables = document.querySelectorAll('.clickable');
+
+        clickables.forEach(function(element) {
+            element.addEventListener('click', function(){
+                view(element.id);
+            });
+        });
+
+    </script>
+
+</body>
+{% endblock %}

@@ -2,6 +2,7 @@ from django.db import models
 
 ### CONSTANTS ###
 HISTORY_NUMBER_LENGTH = 14
+NDC_LENGTH = 7
 
 ### AUXILIAR FUNCTIONS ###
 def genericBooleanVerbose(bool):
@@ -52,7 +53,7 @@ class DrugType(models.Model):
 
 class Drug(models.Model):
     name = models.CharField(max_length=30, unique=True)
-    NDC = models.IntegerField(unique=True, null=True, blank=True)
+    NDC = models.CharField(max_length=NDC_LENGTH, unique=True, null=True, blank=True)
     drugType = models.ForeignKey(DrugType, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:
@@ -64,11 +65,18 @@ class Drug(models.Model):
     @property
     def verbose_drugType(self):
         return genericNoneVerbose(self.drugType)
+    @property
+    def total(self):
+        result = 0
+        for drug in StoragedDrug.objects.filter(drug=self):
+            result += drug.quantity
+        return result
 
 class StoragedDrug(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField()
+    expirationDate = models.DateField(null=True, blank=True)
 
     class Meta:
         models.UniqueConstraint(fields=['drug', 'storage'], name='no_multiplicity')
@@ -79,6 +87,9 @@ class StoragedDrug(models.Model):
     @property
     def verbose_storage(self):
         return genericNoneVerbose(self.storage)
+    @property
+    def verbose_expirationDate(self):
+        return genericNoneVerbose(self.expirationDate)
 
 
 ### PEOPLE ###

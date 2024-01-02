@@ -83,11 +83,10 @@ class DrugForm(ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
     
     NDC_attrs= {
-        'max_length': 7,
-        'min': 0,
+        'max_length': NDC_LENGTH,
         'class': 'field',
     }
-    NDC = forms.IntegerField(widget=forms.NumberInput(attrs=NDC_attrs), label='NDC', label_suffix=' ', required=False)
+    NDC = forms.CharField(widget=forms.TextInput(attrs=NDC_attrs), label='NDC', label_suffix=' ', required=False, validators=[MinLengthValidator(NDC_LENGTH)])
     
     drugType_attrs= {
         'class': 'field',
@@ -98,19 +97,43 @@ class DrugForm(ModelForm):
 class StoragedDrugForm(ModelForm):
     class Meta:
         model = StoragedDrug
-        fields = ['drug', 'quantity']
+        fields = ['drug', 'quantity', 'expirationDate']
         redirect_url = 'core:storagedDrugs'
         
     drug_attrs= {
         'class': 'field',
+        'id': 'drug_selector'
     }
     drug = forms.ModelChoiceField(queryset= Drug.objects.all(), widget=forms.Select(attrs=drug_attrs), label='Medicamento', label_suffix=' ')
+    
+    quantity_attrs= {
+        'class': 'field',
+        'min': 1,
+    }
+    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
+
+    expirationDate_attrs= {
+        'class': 'field',
+    }
+    expirationDate = forms.DateField(widget=forms.DateInput(attrs=expirationDate_attrs), label='Fecha de caducidad', label_suffix=' ', required=False)
+
+
+class StoragedDrugFormEdition(ModelForm):
+    class Meta:
+        model = StoragedDrug
+        fields = ['quantity', 'expirationDate']
+        redirect_url = 'core:storagedDrugs'
     
     quantity_attrs= {
         'class': 'field',
         'min': 0,
     }
     quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
+
+    expirationDate_attrs= {
+        'class': 'field',
+    }
+    expirationDate = forms.DateField(widget=forms.DateInput(attrs=expirationDate_attrs), label='Fecha de caducidad', label_suffix=' ', required=False)
     
     
 ### PEOPLE ###

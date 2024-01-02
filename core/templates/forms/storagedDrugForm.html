@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+
+    <form method="post" action="{% url function_url storage %}">
+        {% csrf_token %}
+        <label for="query_type">Grupo de medicamentos</label>
+        <select id="query_type"  name="query_type" onchange=filter()>
+            <option value="0"></option>
+            {% for type in types %}
+            <option value="{{ type.pk }}">{{ type }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        {% for field in form %}
+        {{ field.label_tag }}{{ field }}
+        {{ field.errors }}
+        <br>
+        {% endfor %}
+        <button type="submit">Guardar</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
+
+    <script>
+        function filter() {
+
+            var drug_selector = document.getElementById("drug_selector");
+            drug_selector.innerHTML = '';
+
+            var query_type_value = document.getElementById("query_type").value;
+
+            fetch('http://127.0.0.1:8000/filterByGroup/' + query_type_value)
+            .then(response => {return response.json();})
+            .then(json => {
+                drug_selector.add(new Option('', ''), undefined);
+                json.result.forEach(drug => {
+                    drug_selector.add(new Option(drug['value'], drug['key']), undefined);
+                });
+            });
+        }
+        filter();
+    </script>
+
+</body>
+{% endblock %}

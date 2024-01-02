@@ -282,29 +282,80 @@ def drugTypes(request):
 
 
 ### STORAGED DRUGS ###   
-#TODO: Esto es más de funcionalidades, primero, debo implementar el manejo de maestros,
-#las backups, que es muy rápido y me ahorra tiempo y ya luego esto.
 @csrf_protect
 @login_required
-def createStoragedDrug(request):
-    return createGeneric(request, StoragedDrugForm, 'core:createStoragedDrug', 'Nuevo uwu')
+def createStoragedDrug(request, storage):
+    if request.method == 'POST':
+        form = StoragedDrugForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            actualDrugsInStorage = []
+            for drug in StoragedDrug.objects.filter(storage=storage):
+                actualDrugsInStorage += drug.drug
+
+            if form.drug in actualDrugsInStorage:
+                object = StoragedDrug.objects.filter( Q(drug=form.drug) & Q(storage=storage))
+                object.quantity += form.quantity
+                form.save()
+            else:
+                form.storage = get_object_or_404(Storage, pk=storage)
+                form.save()
+            
+        return redirect('core:storagedDrugs')
+    else:
+        form = StoragedDrugForm()
+    
+    ctx = {
+        'form': form,
+        'title': 'Añadir medicamento al almacén '+get_object_or_404(Storage, pk=storage).name,
+        'back_url': 'core:storagedDrugs',
+        'function_url': 'core:createStoragedDrug',
+        'backendURL': urls.backendURL,
+        'storage': storage,
+        'types': DrugType.objects.all(),
+    }
+    return render(request, 'forms/storagedDrugForm.html', context=ctx)
 
 @csrf_protect
 @login_required
 def editStoragedDrug(request, pk):
-    return editGeneric(request, StoragedDrugForm, pk, 'core:editStoragedDrug', 'Editar uwu')
-
-@csrf_protect
-@login_required
-def deleteStoragedDrug(request, pk):
-    return deleteGeneric(request, StoragedDrugForm, pk, 'core:deleteStoragedDrug', 'Borrar uwu')
+    object = get_object_or_404(StoragedDrug, pk=pk)
+    if request.method == 'POST':
+        form = StoragedDrugFormEdition(request.POST, instance=object)
+        if form.is_valid():
+            form = form.save(commit=False)
+            if form.quantity <= 0:
+                object.delete()
+            else:
+                form.save()
+            return redirect('core:storagedDrugs')
+    else:
+        form = StoragedDrugFormEdition(instance=object)
+    
+    ctx = {
+        'form': form,
+        'title': 'Modificar cantidad o caducidad',
+        'back_url': 'core:storagedDrugs',
+        'function_url': 'core:editStoragedDrug',
+        'pk': pk,
+        'drug': object.drug,
+        'storage': object.storage,
+    }
+    return render(request, 'forms/storagedDrugFormEdition.html', context=ctx)
 
 @csrf_protect
 @login_required
 def storagedDrugs(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    storagedDrugs = StoragedDrug.objects.filter( name__icontains=query_generic ).order_by('drug.name')
+    query_type = request.GET.get('query_type', '0')
+    query_storage = request.GET.get('query_storage', '')
+    storagedDrugs = StoragedDrug.objects.filter( drug__name__icontains=query_generic ).order_by('drug__name')
+    if query_storage != '':
+        storagedDrugs = storagedDrugs.filter( storage__exact=query_storage )
+        query_storage = int(query_storage)
+    if query_type != '0':
+        storagedDrugs = storagedDrugs.filter( drug__drugType=query_type )
     # Paginator
     paginator = Paginator(storagedDrugs, N)
     page = request.GET.get('page', 1)
@@ -316,28 +367,25 @@ def storagedDrugs(request):
     ctx = {
         'storagedDrugs': storagedDrugs,
         'query_generic': query_generic,
+        'query_type': int(query_type),
+        'query_storage': query_storage,
+        'types': DrugType.objects.all(),
+        'storages': Storage.objects.all(),
+        'backendURL': urls.backendURL,
     }
-    return render(request, 'masterViewers/storagedDrugs.html', context=ctx)
+    return render(request, 'functionalities/storagedDrugs.html', context=ctx)
+
 
 @csrf_protect
 @login_required
-def consumeStoragedDrug(request):
-    '''# Queries
-    query_generic = request.GET.get('query_generic', '')
-    storagedDrugs = StoragedDrug.objects.filter( name__icontains=query_generic )
-    # Paginator
-    paginator = Paginator(storagedDrugs, N)
-    page = request.GET.get('page', 1)
-    try:
-        storagedDrugs = paginator.page(page)
-    except EmptyPage:
-        storagedDrugs = paginator.page(paginator.num_pages)
-    # Render
-    ctx = {
-        'storagedDrugs': storagedDrugs,
-        'query_generic': query_generic,
-    }
-    return render(request, 'masterViewers/storagedDrugs.html', context=ctx)'''
+def consumeStoragedDrug(request, pk):
+    storagedDrug = get_object_or_404(StoragedDrug, pk=pk)
+    if storagedDrug.quantity > 1:
+        storagedDrug.quantity -= 1
+        storagedDrug.save()
+    else:
+        storagedDrug.delete()
+    return redirect('core:storagedDrugs')
 
 
 ### PEOPLE ###
@@ -499,7 +547,6 @@ def patientsManagement(request):
     ctx = {
         'patients': patients,
         'doctors': Doctor.objects.all(),
-        'backendURL': urls.backendURL,
         'query_generic': query_generic,
         'query_doctor': int(query_doctor),
         'query_bed': int(query_bed),
@@ -566,7 +613,6 @@ def dischargePatient(request, pk):
 
 ### BACKEND FUNCTIONS ###
 @csrf_protect
-@csrf_protect
 @login_required
 def filter(request, pk_service, floor):
     if request.method == 'GET':
@@ -583,7 +629,6 @@ def filter(request, pk_service, floor):
     
 
 @csrf_protect
-@csrf_protect
 @login_required
 def filterInManagement(request, pk_service, floor):
     if request.method == 'GET':
@@ -599,6 +644,19 @@ def filterInManagement(request, pk_service, floor):
     
 
 @csrf_protect
+@login_required
+def filterByGroup(request, group):
+    if request.method == 'GET':
+        drugs = Drug.objects.all()
+        if(group != 0): drugs = drugs.filter(drugType__exact=group)
+        result = []
+        for drug in drugs:
+            result.append({'key': drug.pk, 'value': drug.name})
+        return JsonResponse({'result': result})
+    else:
+        return JsonResponse({})
+    
+
 @csrf_protect
 @login_required
 def viewPatient(request, pk):
@@ -630,6 +688,26 @@ def viewPatient(request, pk):
                                 'backendBed_name': bed_name,
                                 'backendBed_floor': bed_floor,
                                 'backendBed_service': bed_service,
+                            })
+    else:
+        return JsonResponse({})
+    
+
+@csrf_protect
+@login_required
+def viewStoragedDrug(request, pk):
+    if request.method == 'GET':
+
+        storagedDrug = get_object_or_404(StoragedDrug, pk=pk)
+        
+        return JsonResponse({
+                                'BackendStoragedDrug_name': storagedDrug.drug.name,
+                                'BackendStoragedDrug_NDC': storagedDrug.drug.verbose_NDC,
+                                'BackendStoragedDrug_drugType': str(storagedDrug.drug.verbose_drugType),
+                                'BackendStoragedDrug_storage': storagedDrug.storage.name,
+                                'BackendStoragedDrug_quantity': storagedDrug.quantity,
+                                'BackendStoragedDrug_expirationDate': storagedDrug.verbose_expirationDate,
+                                'BackendStoragedDrug_total': storagedDrug.drug.total,
                             })
     else:
         return JsonResponse({})
