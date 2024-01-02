@@ -2,6 +2,8 @@
 
 {% block content %}
 <head>
+    {% load static %}
+    <script src="{% static 'scripts/dateWriter.js' %}" defer></script>
     <title>{{ title }}</title>
 </head>
 <body>

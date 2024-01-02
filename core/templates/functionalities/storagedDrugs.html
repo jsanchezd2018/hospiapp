@@ -21,6 +21,11 @@
                 {% endfor %}
             </select>
             <br>
+            <label for="query_date_1">Fecha de caducidad: </label>
+            <input type="text" id="query_date_1" name="query_date_1" value={{ query_date_1 }}>
+            <label for="query_date_2">-</label>
+            <input type="text" id="query_date_2" name="query_date_2" value={{ query_date_2 }}>
+            <br>
             <label for="query_storage">Buscar por almacén:</label>
             <select id="query_storage"  name="query_storage">
                 <option value=""></option>
@@ -68,7 +73,7 @@
                 </tr>
             </table>
         </div>
-
+        <h3>Medicamentos</h3>
         <table>
         <tr>
             <th>Medicamento</th>

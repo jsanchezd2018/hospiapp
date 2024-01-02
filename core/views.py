@@ -77,6 +77,20 @@ def deleteGeneric(request, klass, pk, function_url, title):
     }
     return render(request, 'forms/genericDeletion.html', context=ctx)
 
+### AUXILIAR FUNCTIONS ###
+def isValidDate(date):
+    if date != '':
+        return  (   len(date) == 10 and
+                    date[0].isdigit() and date[1].isdigit() and date[2] == '/' and
+                    date[3].isdigit() and date[4].isdigit() and date[5] == '/' and
+                    date[6].isdigit() and date[7].isdigit() and date[8].isdigit() and date[9].isdigit() and
+                    int(date[0]+date[1]) in range(1,31) and int(date[3]+date[4]) in range(1,12)
+                )
+    return False
+
+def dateFormat(date):
+    return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]
+
 
 ### PHYSICAL PLACES ###
 
@@ -343,6 +357,7 @@ def editStoragedDrug(request, pk):
     }
     return render(request, 'forms/storagedDrugFormEdition.html', context=ctx)
 
+
 @csrf_protect
 @login_required
 def storagedDrugs(request):
@@ -350,12 +365,16 @@ def storagedDrugs(request):
     query_generic = request.GET.get('query_generic', '')
     query_type = request.GET.get('query_type', '0')
     query_storage = request.GET.get('query_storage', '')
+    query_date_1 = request.GET.get('query_date_1', '')
+    query_date_2 = request.GET.get('query_date_2', '')
     storagedDrugs = StoragedDrug.objects.filter( drug__name__icontains=query_generic ).order_by('drug__name')
     if query_storage != '':
         storagedDrugs = storagedDrugs.filter( storage__exact=query_storage )
         query_storage = int(query_storage)
     if query_type != '0':
         storagedDrugs = storagedDrugs.filter( drug__drugType=query_type )
+    if isValidDate(query_date_1) and isValidDate(query_date_2):
+        storagedDrugs = storagedDrugs.filter(expirationDate__range=[dateFormat(query_date_1), dateFormat(query_date_2)])
     # Paginator
     paginator = Paginator(storagedDrugs, N)
     page = request.GET.get('page', 1)
@@ -369,6 +388,8 @@ def storagedDrugs(request):
         'query_generic': query_generic,
         'query_type': int(query_type),
         'query_storage': query_storage,
+        'query_date_1': query_date_1,
+        'query_date_2': query_date_2,
         'types': DrugType.objects.all(),
         'storages': Storage.objects.all(),
         'backendURL': urls.backendURL,
@@ -531,11 +552,15 @@ def patientsManagement(request):
     query_bed = request.GET.get('query_bed', '0')
     query_floor = request.GET.get('query_floor', '')
     query_service = request.GET.get('query_service', '0')
+    query_date_1 = request.GET.get('query_date_1', '')
+    query_date_2 = request.GET.get('query_date_2', '')
     patients = Patient.objects.filter(name__icontains=query_generic).order_by('name')
     if(query_doctor != '0'):
         patients = patients.filter(doctor__exact=query_doctor)
     if(query_bed != '0'):
         patients = patients.filter(bed__exact=query_bed)
+    if isValidDate(query_date_1) and isValidDate(query_date_2):
+        patients = patients.filter(admissionDate__range=[dateFormat(query_date_1), dateFormat(query_date_2)])
     # Paginator
     paginator = Paginator(patients, N)
     page = request.GET.get('page', 1)
@@ -552,6 +577,8 @@ def patientsManagement(request):
         'query_bed': int(query_bed),
         'query_floor': query_floor,
         'query_service': int(query_service),
+        'query_date_1': query_date_1,
+        'query_date_2': query_date_2,
         'backendURL': urls.backendURL,
         'services': Service.objects.all(),
         'bed': Bed.objects.all(),

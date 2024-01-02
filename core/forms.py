@@ -113,7 +113,7 @@ class StoragedDrugForm(ModelForm):
     quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
 
     expirationDate_attrs= {
-        'class': 'field',
+        'class': 'field date',
     }
     expirationDate = forms.DateField(widget=forms.DateInput(attrs=expirationDate_attrs), label='Fecha de caducidad', label_suffix=' ', required=False)
 
@@ -211,7 +211,7 @@ class PatientForm(ModelForm):
     bed = forms.ModelChoiceField(queryset=Bed.objects.all(), widget=forms.Select(attrs=bed_attrs), label='Cama', label_suffix=' ', required=False)
 
     admissionDate_attrs = {
-        'class': 'field',
+        'class': 'field date',
     }
     admissionDate = forms.DateField(widget=forms.DateInput(attrs=admissionDate_attrs), label='Fecha de ingreso', label_suffix=' ')
 
@@ -281,7 +281,7 @@ class SampleForm(ModelForm):
     patient = forms.ModelChoiceField(queryset= Patient.objects.all(), widget=forms.Select(attrs=patient_attrs), label='Paciente', label_suffix=' ')
     
     date_attrs= {
-        'class': 'field',
+        'class': 'field datetime',
     }
     date = forms.DateTimeField(widget=forms.DateTimeInput(attrs=date_attrs), label='Fecha de muestra', label_suffix=' ')
 
@@ -304,7 +304,7 @@ class BloodForm(ModelForm):
     capacity = forms.IntegerField(widget=forms.NumberInput(attrs=capacity_attrs), label='Volumen de sangre (mL)', label_suffix=' ')
 
     date_attrs= {
-        'class': 'field',
+        'class': 'field datetime',
     }
     date = forms.DateTimeField(widget=forms.DateTimeInput(attrs=date_attrs), label='Fecha de recepción', label_suffix=' ')
 

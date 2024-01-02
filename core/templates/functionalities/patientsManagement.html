@@ -2,6 +2,8 @@
 
 {% block content %}
 <head>
+    {% load static %}
+    <script src="{% static 'scripts/dateWriter.js' %}"></script>
     <title>Pacientes</title>
 </head>
 <body>
@@ -21,6 +23,11 @@
                 {% endfor %}
             </select>
             <br>
+            <label for="query_date_1">Fecha de ingreso: </label>
+            <input type="text" id="query_date_1" name="query_date_1" value={{ query_date_1 }}>
+            <label for="query_date_2">-</label>
+            <input type="text" id="query_date_2" name="query_date_2" value={{ query_date_2 }}>
+            <br>
             <h3>Buscar por cama</h3>
             <label for="query_service">Servicio</label>
             <select id="query_service"  name="query_service" onchange="filterInManagement()">
@@ -36,6 +43,7 @@
             {% for bed in beds %}
             {% if query_bed == bed.pk %}selected{% endif %}
             {% endfor %}
+            <br>
             <button type="submit">Buscar</button>
         </form>
         <a href="{% url "core:createPatient" %}">Ingresar nuevo paciente</a>
@@ -86,6 +94,7 @@
                 </tr>
             </table>
         </div>
+        <h3>Pacientes</h3>
         <table>
         <tr>
             <th>Nombre</th>
