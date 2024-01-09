@@ -2,13 +2,15 @@
 
 {% block content %}
 <head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
     <title>Medicamentos</title>
 </head>
 <body>
 
     <h1>Medicamentos</h1>
 
-    <div>
+    <div class="searcher">
         <form action="{% url 'core:drugs' %}" method="GET">
             <label for="query_generic">Buscar por nombre o NDC:</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
@@ -23,7 +25,7 @@
             <br>
             <button type="submit">Buscar</button>
         </form>
-        <a href="{% url "core:createDrug" %}">Nuevo medicamento</a>
+        <div class="add_button"><a href="{% url "core:createDrug" %}">Nuevo medicamento</a></div>
     </div>
 
     <table>
@@ -37,8 +39,8 @@
         <td>{{ drug.name }}</td>
         <td>{{ drug.NDC }}</td>
         <td>{{ drug.drugType }}</td>
-        <td><a href="{% url "core:editDrug" drug.pk %}">Editar</a></td>
-        <td><a href="{% url "core:deleteDrug" drug.pk %}">Borrar</a></td>
+        <td class="out_table"><a href="{% url "core:editDrug" drug.pk %}">Editar</a></td>
+        <td class="out_table"><a href="{% url "core:deleteDrug" drug.pk %}">Borrar</a></td>
     </tr>
     {% endfor %}
 </table>

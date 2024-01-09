@@ -1,0 +1,58 @@
+h1, h2, h3 {
+    background-color: #286090;
+    color: white;
+}
+
+table {
+    padding-bottom: 15px;
+}
+
+tr th {
+    background-color: #cc6603;
+}
+
+tr {
+    font-weight: bold;
+}
+
+tr:nth-child(odd) {
+    background-color: #FF9969;
+}
+
+tr:nth-child(even) {
+    background-color: #FFD1B6;
+}
+
+input, select {
+    width: 160px;
+    height: 22px;
+    border-radius: 5px;
+    border: none;
+}
+
+button, a {
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    margin: 0;
+    background-color: #3a9ab9;
+    border-radius: 6px;
+    border: none;
+    font-weight: bold;
+    color: white;
+    font-family: Arial, sans-serif;
+    cursor: default;
+    font-size: 14px;
+}
+
+.deletion_message {
+    background-color: #3499ff;
+    width: 100%;
+    text-align: center;
+}
+
+.deletion_form {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}

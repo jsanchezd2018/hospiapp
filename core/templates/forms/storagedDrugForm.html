@@ -3,6 +3,7 @@
 {% block content %}
 <head>
     {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
     <script src="{% static 'scripts/dateWriter.js' %}" defer></script>
     <title>{{ title }}</title>
 </head>
@@ -11,19 +12,26 @@
 
     <form method="post" action="{% url function_url storage %}">
         {% csrf_token %}
-        <label for="query_type">Grupo de medicamentos</label>
-        <select id="query_type"  name="query_type" onchange=filter()>
+        <table><tbody>
+        <tr><td>
+        <label for="query_type"><b>Grupo de medicamentos</b></label>
+        </td><td>
+        <select id="query_type"  name="query_type" class="field" onchange=filter()>
             <option value="0"></option>
             {% for type in types %}
             <option value="{{ type.pk }}">{{ type }}</option>
             {% endfor %}
         </select>
-        <br>
+        </td></tr>
         {% for field in form %}
-        {{ field.label_tag }}{{ field }}
+        <tr><td>
+        <b>{{ field.label_tag }}</b>
+        </td><td>
+        {{ field }}
         {{ field.errors }}
-        <br>
+        </td></tr>
         {% endfor %}
+        </tbody></table>
         <button type="submit">Guardar</button>
         <a href="{% url back_url %}">Cancelar</a>
     </form>

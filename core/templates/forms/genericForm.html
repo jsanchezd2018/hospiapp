@@ -16,13 +16,16 @@
         action="{% url function_url %}"
     {% endif %}>
         {% csrf_token %}
-        
+        <table><tbody>
         {% for field in form %}
-        {{ field.label_tag }}{{ field }}
+        <tr><td>
+        <b>{{ field.label_tag }}</b>
+        </td><td>
+        {{ field }}
         {{ field.errors }}
-        <br>
+        </td></tr>
         {% endfor %}
-    
+        </tbody></table>
         <button type="submit">Guardar</button>
         <a href="{% url back_url %}">Cancelar</a>
     </form>

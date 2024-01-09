@@ -108,7 +108,7 @@ class User(models.Model):
 
 class Patient(models.Model):
     name = models.CharField(max_length=30)
-    historyNumber = models.CharField(max_length=HISTORY_NUMBER_LENGTH, unique=True, null=True, blank=True)
+    historyNumber = models.CharField(max_length=HISTORY_NUMBER_LENGTH, null=True, blank=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
     history = models.CharField(max_length=500, null=True, blank=True)
     constants = models.CharField(max_length=50, null=True, blank=True)

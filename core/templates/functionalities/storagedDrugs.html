@@ -2,13 +2,15 @@
 
 {% block content %}
 <head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
     <title>Farmacia</title>
 </head>
 <body>
 
     <h1>Farmacia</h1>
 
-    <div>
+    <div class="searcher">
         <form action="{% url 'core:storagedDrugs' %}" method="GET">
             <label for="query_generic">Buscar por nombre del medicamento:</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
@@ -36,62 +38,66 @@
             <br>
             <button type="submit">Buscar</button>
         </form>
-        {% if query_storage %}<a href="{% url "core:createStoragedDrug" query_storage %}">Añadir medicamento al almacén</a>{% endif %}
+        {% if query_storage %}<div class="add_button">
+            <a href="{% url "core:createStoragedDrug" query_storage %}">Añadir medicamento al almacén</a>
+        </div>{% endif %}
     </div>
 
     <div class="grid">
         <div class="viewer">
             <h3>Datos del medicamento</h3>
-            <table>
+            <table class="viewer_table">
                 <tr>
-                    <td>Medicamento</td>
+                    <td><b>Medicamento</b></td>
                     <td id='view_drug'> </td>
                 </tr>
                 <tr>
-                    <td>NDC</td>
+                    <td><b>NDC</b></td>
                     <td id='view_NDC'> </td>
                 </tr>
                 <tr>
-                    <td>Grupo de medicamentos</td>
+                    <td><b>Grupo de medicamentos</b></td>
                     <td id='view_type'> </td>
                 </tr>
                 <tr>
-                    <td>Almacén</td>
+                    <td><b>Almacén</b></td>
                     <td id='view_storage'> </td>
                 </tr>
                 <tr>
-                    <td>Cantidad</td>
+                    <td><b>Cantidad</b></td>
                     <td id='view_quantity'> </td>
                 </tr>
                 <tr>
-                    <td>Fecha caducidad</td>
+                    <td><b>Fecha caducidad</b></td>
                     <td id='view_date'> </td>
                 </tr>
                 <tr>
-                    <td>Cantidad total</td>
+                    <td><b>Cantidad total</b></td>
                     <td id='view_total'> </td>
                 </tr>
             </table>
         </div>
+        <div class="main_table">
         <h3>Medicamentos</h3>
-        <table>
-        <tr>
-            <th>Medicamento</th>
-            <th>Almacén</th>
-            <th>Cantidad</th>
-            <th>Fecha de caducidad</th>
-        </tr>
-        {% for storagedDrug in storagedDrugs %}
-        <tr class="clickable" id="{{ storagedDrug.pk }}">
-            <td>{{ storagedDrug.drug }}</td>
-            <td>{{ storagedDrug.verbose_storage }}</td>
-            <td>{{ storagedDrug.quantity }}</td>
-            <td>{{ storagedDrug.verbose_expirationDate }}</td>
-            <td><a href="{% url 'core:editStoragedDrug' storagedDrug.pk %}">Alterar cantidad</a></td>
-            <td><a href="{% url 'core:consumeStoragedDrug' storagedDrug.pk %}">Consumir</a></td>
-        </tr>
-        {% endfor %}
-        </table>
+            <table>
+            <tr>
+                <th>Medicamento</th>
+                <th>Almacén</th>
+                <th>Cantidad</th>
+                <th>Fecha de caducidad</th>
+            </tr>
+            {% for storagedDrug in storagedDrugs %}
+            <tr class="clickable" id="{{ storagedDrug.pk }}">
+                <td>{{ storagedDrug.drug }}</td>
+                <td>{{ storagedDrug.verbose_storage }}</td>
+                <td>{{ storagedDrug.quantity }}</td>
+                <td>{{ storagedDrug.verbose_expirationDate }}</td>
+                <td class="out_table"><a href="{% url 'core:editStoragedDrug' storagedDrug.pk %}">Alterar cantidad</a></td>
+                <td class="out_table"><a href="{% url 'core:consumeStoragedDrug' storagedDrug.pk %}">Consumir</a></td>
+            </tr>
+            {% endfor %}
+            </table>
+        </div>
     </div>
 
     <div class="paginator">

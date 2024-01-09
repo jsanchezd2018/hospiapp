@@ -2,20 +2,22 @@
 
 {% block content %}
 <head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
     <title>Médicos</title>
 </head>
 <body>
 
     <h1>Médicos</h1>
 
-    <div>
+    <div class="searcher">
         <form action="{% url 'core:doctors' %}" method="GET">
             <label for="query_generic">Buscar por nombre:</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
             <br>
             <button type="submit">Buscar</button>
         </form>
-        <a href="{% url "core:createDoctor" %}">Nuevo médico</a>
+        <div class="add_button"><a href="{% url "core:createDoctor" %}">Nuevo médico</a></div>
     </div>
 
     <table>
@@ -25,8 +27,8 @@
     {% for doctor in doctors %}
     <tr>
         <td>{{ doctor.name }}</td>
-        <td><a href="{% url "core:editDoctor" doctor.pk %}">Editar</a></td>
-        <td><a href="{% url "core:deleteDoctor" doctor.pk %}">Borrar</a></td>
+        <td class="out_table"><a href="{% url "core:editDoctor" doctor.pk %}">Editar</a></td>
+        <td class="out_table"><a href="{% url "core:deleteDoctor" doctor.pk %}">Borrar</a></td>
     </tr>
     {% endfor %}
 </table>

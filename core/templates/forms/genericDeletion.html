@@ -6,11 +6,9 @@
 </head>
 <body>
     <h1>{{ title }}</h1>
-    
-    <h2>¿Seguro que quieres borrar?</h2>
-    <h2>Hacerlo podría afectar a algunas cosas en la base de datos</h2>
+    <h2 class="deletion_message">Estás a punto de borrar: {{ object }} <br> ¿Seguro que quieres borrar?</h2>
 
-    <form action="{% url function_url pk %}" method="post">
+    <form action="{% url function_url pk %}" method="post" class="deletion_form">
         {% csrf_token %}
         <button type="submit">Borrar</button>
         <a href="{% url back_url %}">Cancelar</a>

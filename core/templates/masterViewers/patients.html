@@ -2,13 +2,15 @@
 
 {% block content %}
 <head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
     <title>Pacientes</title>
 </head>
 <body>
 
     <h1>Pacientes</h1>
 
-    <div>
+    <div class="searcher">
         <form action="{% url 'core:patients' %}" method="GET">
             <label for="query_generic">Buscar por nombre:</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
@@ -34,8 +36,8 @@
         <td>{{ patient.verbose_constants }}</td>
         <td>{{ patient.verbose_bed }}</td>
         <td>{{ patient.verbose_admissionDate }}</td>
-        <td><a href="{% url 'core:editPatient' patient.pk %}">Editar</a></td>
-        <td><a href="{% url 'core:deletePatient' patient.pk %}">Borrar</a></td>
+        <td class="out_table"><a href="{% url 'core:editPatient' patient.pk %}">Editar</a></td>
+        <td class="out_table"><a href="{% url 'core:deletePatient' patient.pk %}">Borrar</a></td>
     </tr>
     {% endfor %}
     </table>

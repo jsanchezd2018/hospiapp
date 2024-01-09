@@ -1,16 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <head>
     {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
     <script src="{% static 'scripts/dateWriter.js' %}"></script>
     <title>Pacientes</title>
 </head>
+
 <body>
 
     <h1>Pacientes</h1>
 
-    <div>
+    <div class="searcher">
         <form action="{% url 'core:patientsManagement' %}" method="GET">
             <label for="query_generic">Buscar por nombre o nº historia:</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
@@ -39,82 +42,84 @@
             <label for="query_floor">Planta</label>
             <input type="number" id="query_floor" name="query_floor" onchange="filterInManagement()" value={{ query_floor }}>
             <label for="query_bed">Cama</label>
-            <select name="query_bed" class="field" id="bed_selector"></select>
+            <select name="query_bed" id="bed_selector"></select>
             {% for bed in beds %}
             {% if query_bed == bed.pk %}selected{% endif %}
             {% endfor %}
             <br>
             <button type="submit">Buscar</button>
         </form>
-        <a href="{% url "core:createPatient" %}">Ingresar nuevo paciente</a>
+        <div class="add_button"><a href="{% url "core:createPatient" %}">Ingresar nuevo paciente</a></div>
     </div>
 
     <div class="grid">
         <div class="viewer">
             <h3>Datos del paciente</h3>
-            <table>
+            <table class="viewer_table">
                 <tr>
-                    <td>Nombre</td>
-                    <td id='view_name'> </td>
+                    <td><b>Nombre</b></td>
+                    <td id='view_name'></td>
                 </tr>
                 <tr>
-                    <td>Número de historia</td>
+                    <td><b>Número de historia</b></td>
                     <td id='view_historyNumber'> </td>
                 </tr>
                 <tr>
-                    <td>Médico asignado</td>
+                    <td><b>Médico asignado</b></td>
                     <td id='view_doctor'> </td>
                 </tr>
                 <tr>
-                    <td>Fecha de ingreso</td>
+                    <td><b>Fecha de ingreso</b></td>
                     <td id='view_date'> </td>
                 </tr>
                 <tr>
-                    <td>Constantes</td>
+                    <td><b>Constantes</b></td>
                     <td id='view_constants'> </td>
                 </tr>
                 <tr>
-                    <td>Historial</td>
+                    <td><b>Historial</b></td>
                     <td id='view_history'> </td>
                 </tr>
             </table>
             <h3>Cama asignada</h3>
-            <table>
+            <table class="viewer_table">
                 <tr>
-                    <td>Cama</td>
+                    <td><b>Cama</b></td>
                     <td id='view_bed'> </td>
                 </tr>
                 <tr>
-                    <td>Planta</td>
+                    <td><b>Planta</b></td>
                     <td id='view_floor'> </td>
                 </tr>
                 <tr>
-                    <td>Servicio</td>
+                    <td><b>Servicio</b></td>
                     <td id='view_service'> </td>
                 </tr>
             </table>
         </div>
-        <h3>Pacientes</h3>
-        <table>
-        <tr>
-            <th>Nombre</th>
-            <th>Número de historia</th>
-            <th>Médico</th>
-            <th>Cama</th>
-            <th>Fecha de ingreso</th>
-        </tr>
-        {% for patient in patients %}
-        <tr class="clickable" id="{{ patient.pk }}">
-            <td>{{ patient.name }}</td>
-            <td>{{ patient.verbose_historyNumber }}</td>
-            <td>{{ patient.verbose_doctor }}</td>
-            <td>{{ patient.verbose_bed }}</td>
-            <td>{{ patient.verbose_admissionDate }}</td>
-            <td><a href="{% url 'core:editPatient' patient.pk %}">Modificar datos / Ingresar</a></td>
-            <td><a href="{% url 'core:dischargePatient' patient.pk %}">Dar el alta</a></td>
-        </tr>
-        {% endfor %}
-        </table>
+        <div class="main_table">
+            <h3>Pacientes</h3>
+            <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Número de historia</th>
+                <th>Médico</th>
+                <th>Cama</th>
+                <th>Fecha de ingreso</th>
+            </tr>
+            {% for patient in patients %}
+            <tr class="clickable" id="{{ patient.pk }}">
+                <td>{{ patient.name }}</td>
+                <td>{{ patient.verbose_historyNumber }}</td>
+                <td>{{ patient.verbose_doctor }}</td>
+                <td>{{ patient.verbose_bed }}</td>
+                <td>{{ patient.verbose_admissionDate }}</td>
+                <td class="out_table"><a href="{% url 'core:editPatient' patient.pk %}">Modificar datos / Ingresar</a></td>
+                <td class="out_table"><a href="{% url 'core:dischargePatient' patient.pk %}">Dar el alta</a></td>
+            </tr>
+            {% endfor %}
+            </table>
+        </div>
     </div>
 
     <div class="paginator">
@@ -181,5 +186,5 @@
 
     </script>
 
-</body>
 {% endblock %}
+</body>

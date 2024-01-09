@@ -2,21 +2,23 @@
 
 {% block content %}
 <head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
     <title>Camas</title>
 </head>
 <body>
 
     <h1>Camas</h1>
 
-    <div>
+    <div class="searcher">
         <form action="{% url 'core:beds' %}" method="GET">
-            <label for="query_generic">Buscar por nombre de cama:</label>
+            <label for="query_generic">Buscar por nombre de cama</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
             <br>
-            <label for="query_floor">Buscar por planta:</label>
+            <label for="query_floor">Buscar por planta</label>
             <input type="number" id="query_floor" name="query_floor" value="{{ query_floor }}">
             <br>
-            <label for="query_service">Buscar por servicio:</label>
+            <label for="query_service">Buscar por servicio</label>
             <select id="query_service"  name="query_service">
                 <option value="0"></option>
                 {% for service in services %}
@@ -26,26 +28,25 @@
             <br>
             <button type="submit">Buscar</button>
         </form>
-        <a href="{% url "core:createBed" %}">Nueva cama</a>
+        <div class="add_button"><a href="{% url "core:createBed" %}">Nueva cama</a></div>
     </div>
 
     <table>
-    <tr>
+    <thead><tr>
         <th>Nombre</th>
         <th>Planta</th>
         <th>Servicio</th>
-    </tr>
+    </tr></thead><tbody>
     {% for bed in beds %}
     <tr>
         <td>{{ bed.name }}</td>
         <td>{{ bed.floor }}</td>
         <td>{{ bed.service.name }}</td>
-        <td><a href="{% url "core:editBed" bed.pk %}">Editar</a></td>
-        <td><a href="{% url "core:deleteBed" bed.pk %}">Borrar</a></td>
+        <td class="out_table"><a href="{% url "core:editBed" bed.pk %}">Editar</a></td>
+        <td class="out_table"><a href="{% url "core:deleteBed" bed.pk %}">Borrar</a></td>
     </tr>
     {% endfor %}
-
-</table>
+    </tbody></table>
 
     <div class="paginator">
         {% if beds.has_previous %}

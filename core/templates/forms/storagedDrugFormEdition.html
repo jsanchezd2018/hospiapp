@@ -21,12 +21,16 @@
 
     <form method="post" action="{% url function_url pk %}">
         {% csrf_token %}
+        <table>
         {% for field in form %}
-        {{ field.label_tag }}{{ field }}
+        <tr><td>
+        {{ field.label_tag }}
+        </td><td>
+        {{ field }}
         {{ field.errors }}
-        <br>
+        </td></tr>
         {% endfor %}
-    
+        </table>
         <button type="submit">Guardar</button>
         <a href="{% url back_url %}">Cancelar</a>
     </form>
