@@ -91,6 +91,7 @@ def isValidDate(date):
 def dateFormat(date):
     return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]
 
+### FIRST PART ###
 
 ### PHYSICAL PLACES ###
 
@@ -129,6 +130,43 @@ def storages(request):
         'query_generic': query_generic,
     }
     return render(request, 'masterViewers/storages.html', context=ctx)
+
+
+### LAB STORAGES ###
+@csrf_protect
+@login_required
+def createLabStorage(request):
+    return createGeneric(request, StorageForm, 'core:createLabStorage', 'Nuevo almacén')
+
+@csrf_protect
+@login_required
+def editLabStorage(request, pk):
+    return editGeneric(request, StorageForm, pk, 'core:editLabStorage', 'Editar almacén')
+
+@csrf_protect
+@login_required
+def deleteLabStorage(request, pk):
+    return deleteGeneric(request, StorageForm, pk, 'core:deleteLabStorage', 'Borrar almacén')
+
+@csrf_protect
+@login_required
+def labStorages(request):
+    # Queries
+    query_generic = request.GET.get('query_generic', '')
+    labStorages = LabStorage.objects.filter(name__icontains=query_generic).order_by('name')
+    # Paginator
+    paginator = Paginator(labStorages, N)
+    page = request.GET.get('page', 1)
+    try:
+        labStorages = paginator.page(page)
+    except EmptyPage:
+        labStorages = paginator.page(paginator.num_pages)
+    # Render
+    ctx = {
+        'labStorages': labStorages,
+        'query_generic': query_generic,
+    }
+    return render(request, 'masterViewers/labStorages.html', context=ctx)
 
 
 ### SERVICES ###
@@ -554,7 +592,13 @@ def patientsManagement(request):
     query_service = request.GET.get('query_service', '0')
     query_date_1 = request.GET.get('query_date_1', '')
     query_date_2 = request.GET.get('query_date_2', '')
+    query_status = request.GET.get('query_status', '0')
     patients = Patient.objects.filter(name__icontains=query_generic).order_by('name')
+    if(query_status != '0'):
+        if(query_status == '1'):
+            patients = patients.exclude(admissionDate=None)
+        else:
+            patients = patients.filter(admissionDate=None)
     if(query_doctor != '0'):
         patients = patients.filter(doctor__exact=query_doctor)
     if(query_bed != '0'):
@@ -579,6 +623,7 @@ def patientsManagement(request):
         'query_service': int(query_service),
         'query_date_1': query_date_1,
         'query_date_2': query_date_2,
+        'query_status': int(query_status),
         'backendURL': urls.backendURL,
         'services': Service.objects.all(),
         'bed': Bed.objects.all(),
@@ -636,7 +681,167 @@ def dischargePatient(request, pk):
     patient.bed = None
     patient.save()
     return redirect('core:patientsManagement')
+
+
+### SECOND PART ###
+
+### MASTER ###
+
+### LAB MATERIAL ###
+@csrf_protect
+@login_required
+def createLabMaterial(request):
+    return createGeneric(request, LabMaterialForm, 'core:createLabMaterial', 'Nuevo material de laboratorio')
+
+@csrf_protect
+@login_required
+def editLabMaterial(request, pk):
+    return editGeneric(request, LabMaterialForm, pk, 'core:editLabMaterial', 'Editar material de laboratorio')
+
+@csrf_protect
+@login_required
+def deleteLabMaterial(request, pk):
+    return deleteGeneric(request, LabMaterialForm, pk, 'core:deleteLabMaterial', 'Borrar material de laboratorio')
+
+@csrf_protect
+@login_required
+def labMaterials(request):
+    # Queries
+    query_generic = request.GET.get('query_generic', '')
+    query_type = request.GET.get('query_type', '0')
+    labMaterials = LabMaterial.objects.filter(name__icontains=query_generic).order_by('name')
+    if query_type != '0':
+        labMaterials = labMaterials.filter(materialType=query_type)
+    # Paginator
+    paginator = Paginator(labMaterials, N)
+    page = request.GET.get('page', 1)
+    try:
+        labMaterials = paginator.page(page)
+    except EmptyPage:
+        labMaterials = paginator.page(paginator.num_pages)
+    # Render
+    ctx = {
+        'labMaterials': labMaterials,
+        'types': materialTypes.items(),
+        'query_generic': query_generic,
+        'query_type': query_type,
+    }
+    return render(request, 'masterViewers/labMaterials.html', context=ctx)
+
+
+### STORAGED LAB MATERIAL ###
+@csrf_protect
+@login_required
+def createStoragedLabMaterial(request, storage):
+    if request.method == 'POST':
+        form = StoragedLabMaterialForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            actualLabMaterialsInStorage = []
+            for labMaterial in StoragedLabMaterial.objects.filter(storage=storage):
+                actualLabMaterialsInStorage += labMaterial.labMaterial
+
+            if form.labMaterial in actualLabMaterialsInStorage:
+                obj = StoragedLabMaterial.objects.filter(Q(labMaterial=form.labMaterial) & Q(storage=storage))
+                obj.quantity += form.quantity
+                form.save()
+            else:
+                form.storage = get_object_or_404(Storage, pk=storage)
+                form.save()
+
+            return redirect('core:storagedLabMaterials')
+    else:
+        form = StoragedLabMaterialForm()
+
+    ctx = {
+        'form': form,
+        'title': 'Añadir material de laboratorio al almacén ' + get_object_or_404(Storage, pk=storage).name,
+        'back_url': 'core:storagedLabMaterials',
+        'function_url': 'core:createStoragedLabMaterial',
+        'backendURL': urls.backendURL,
+        'storage': storage,
+        'types': materialTypes.items(),
+    }
+    return render(request, 'forms/storagedLabMaterialForm.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+def editStoragedLabMaterial(request, pk):
+    obj = get_object_or_404(StoragedLabMaterial, pk=pk)
+    if request.method == 'POST':
+        form = StoragedLabMaterialFormEdition(request.POST, instance=obj)
+        if form.is_valid():
+            form = form.save(commit=False)
+            if form.quantity <= 0:
+                obj.delete()
+            else:
+                form.save()
+            return redirect('core:storagedLabMaterials')
+    else:
+        form = StoragedLabMaterialFormEdition(instance=obj)
+
+    ctx = {
+        'form': form,
+        'title': 'Modificar cantidad',
+        'back_url': 'core:storagedLabMaterials',
+        'function_url': 'core:editStoragedLabMaterial',
+        'pk': pk,
+        'labMaterial': obj.labMaterial,
+        'storage': obj.storage,
+    }
+    return render(request, 'forms/storagedLabMaterialFormEdition.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+def storagedLabMaterials(request):
+    # Queries
+    query_generic = request.GET.get('query_generic', '')
+    query_type = request.GET.get('query_type', '0')
+    query_storage = request.GET.get('query_storage', '')
+    storagedLabMaterials = StoragedLabMaterial.objects.filter(labMaterial__name__icontains=query_generic).order_by('labMaterial__name')
     
+    if query_storage != '':
+        storagedLabMaterials = storagedLabMaterials.filter(storage=query_storage)
+        query_storage = int(query_storage)
+    
+    if query_type != '0':
+        storagedLabMaterials = storagedLabMaterials.filter(labMaterial__labMaterialType=query_type)
+    
+    # Paginator
+    paginator = Paginator(storagedLabMaterials, N)
+    page = request.GET.get('page', 1)
+    try:
+        storagedLabMaterials = paginator.page(page)
+    except EmptyPage:
+        storagedLabMaterials = paginator.page(paginator.num_pages)
+
+    # Render
+    ctx = {
+        'storagedLabMaterials': storagedLabMaterials,
+        'query_generic': query_generic,
+        'query_type': int(query_type),
+        'query_storage': query_storage,
+        'types': materialTypes.items(),
+        'storages': Storage.objects.all(),
+        'backendURL': urls.backendURL,
+    }
+    return render(request, 'functionalities/storagedLabMaterials.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+def consumeStoragedLabMaterial(request, pk):
+    storagedLabMaterial = get_object_or_404(StoragedLabMaterial, pk=pk)
+    if storagedLabMaterial.quantity > 1:
+        storagedLabMaterial.quantity -= 1
+        storagedLabMaterial.save()
+    else:
+        storagedLabMaterial.delete()
+    
+    return redirect('core:storagedLabMaterials')
+
 
 ### BACKEND FUNCTIONS ###
 @csrf_protect
@@ -652,8 +857,7 @@ def filter(request, pk_service, floor):
                 result.append({'key': bed.pk, 'value': bed.name})
         return JsonResponse({'result': result})
     else:
-        return JsonResponse({})
-    
+        return JsonResponse({}) 
 
 @csrf_protect
 @login_required
@@ -668,7 +872,6 @@ def filterInManagement(request, pk_service, floor):
         return JsonResponse({'result': result})
     else:
         return JsonResponse({})
-    
 
 @csrf_protect
 @login_required
@@ -683,6 +886,21 @@ def filterByGroup(request, group):
     else:
         return JsonResponse({})
     
+@csrf_protect
+@login_required
+def filterByType(request, type):
+    if request.method == 'GET':
+        labMaterials = LabMaterial.objects.all()
+        if type != 0:
+            labMaterials = labMaterials.filter(materialType__exact=type)
+        result = []
+        for labMaterial in labMaterials:
+            result.append({'key': labMaterial.pk, 'value': labMaterial.name})
+        
+        return JsonResponse({'result': result})
+    else:
+        return JsonResponse({})
+
 
 @csrf_protect
 @login_required
@@ -718,7 +936,6 @@ def viewPatient(request, pk):
                             })
     else:
         return JsonResponse({})
-    
 
 @csrf_protect
 @login_required
@@ -735,6 +952,23 @@ def viewStoragedDrug(request, pk):
                                 'BackendStoragedDrug_quantity': storagedDrug.quantity,
                                 'BackendStoragedDrug_expirationDate': storagedDrug.verbose_expirationDate,
                                 'BackendStoragedDrug_total': storagedDrug.drug.total,
+                            })
+    else:
+        return JsonResponse({})
+    
+@csrf_protect
+@login_required
+def viewStoragedLabMaterial(request, pk):
+    if request.method == 'GET':
+
+        storagedLabMaterial = get_object_or_404(StoragedLabMaterial, pk=pk)
+        
+        return JsonResponse({
+                                'BackendStoragedLabMaterial_material': storagedLabMaterial.labMaterial.name,
+                                'BackendStoragedLabMaterial_type': storagedLabMaterial.labMaterial.verbose_materialType,
+                                'BackendStoragedLabMaterial_storage': storagedLabMaterial.storage.name,
+                                'BackendStoragedLabMaterial_quantity': storagedLabMaterial.quantity,
+                                'BackendStoragedLabMaterial_total': storagedLabMaterial.labMaterial.total,
                             })
     else:
         return JsonResponse({})

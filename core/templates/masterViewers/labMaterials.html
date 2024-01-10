@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
+    <title>Materiales de Laboratorio</title>
+</head>
+<body>
+
+    <h1>Materiales de Laboratorio</h1>
+
+    <div class="searcher">
+        <form action="{% url 'core:labMaterials' %}" method="GET">
+            <label for="query_generic">Buscar por material:</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <label for="query_type">Buscar por tipo:</label>
+            <select id="query_type"  name="query_type">
+                <option value="0"></option>
+                {% for key, value in types %}
+                <option value="{{ key }}" {% if query_type == key %}selected{% endif %} >{{ value }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        <div class="add_button"><a href="{% url "core:createLabMaterial" %}">Nuevo material de laboratorio</a></div>
+    </div>
+
+    <table>
+    <tr>
+        <th>Nombre de material</th>
+        <th>Tipo de material</th>
+    </tr>
+    {% for labMaterial in labMaterials %}
+    <tr>
+        <td>{{ labMaterial.name }}</td>
+        <td>{{ labMaterial.verbose_materialType }}</td>
+        <td class="out_table"><a href="{% url "core:editLabMaterial" labMaterial.pk %}">Editar</a></td>
+        <td class="out_table"><a href="{% url "core:deleteLabMaterial" labMaterial.pk %}">Borrar</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+    <div class="paginator">
+        {% if labMaterials.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ labMaterials.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ labMaterials.number }} / {{ labMaterials.paginator.num_pages }}
+        </span>
+
+        {% if labMaterials.has_next %}
+            <a href="?page={{ labMaterials.next_page_number }}">siguiente</a>
+            <a href="?page={{ labMaterials.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+</body>
+{% endblock %}

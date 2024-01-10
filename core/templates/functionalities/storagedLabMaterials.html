@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
+    <title>Laboratorio</title>
+</head>
+<body>
+
+    <h1>Laboratorio</h1>
+
+    <div class="searcher">
+        <form action="{% url 'core:storagedLabMaterials' %}" method="GET">
+            <label for="query_generic">Buscar por material</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <label for="query_type">Buscar por tipo de material</label>
+            <select id="query_type"  name="query_type">
+                <option value="0"></option>
+                {% for type in types %}
+                <option value="{{ type.pk }}" {% if query_type == type.pk %}selected{% endif %} >{{ type }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="query_storage">Buscar por almacén:</label>
+            <select id="query_storage"  name="query_storage">
+                <option value=""></option>
+                {% for storage in storages %}
+                <option value="{{ storage.pk }}" {% if query_storage == storage.pk %}selected{% endif %} >{{ storage }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        {% if query_storage %}<div class="add_button">
+            <a href="{% url "core:createStoragedLabMaterial" query_storage %}">Añadir material al almacén</a>
+        </div>{% endif %}
+    </div>
+
+    <div class="grid">
+        <div class="viewer">
+            <h3>Datos del material</h3>
+            <table class="viewer_table">
+                <tr>
+                    <td><b>Material</b></td>
+                    <td id='view_material'> </td>
+                </tr>
+                <tr>
+                    <td><b>Tipo de material</b></td>
+                    <td id='view_type'> </td>
+                </tr>
+                <tr>
+                    <td><b>Almacén</b></td>
+                    <td id='view_storage'> </td>
+                </tr>
+                <tr>
+                    <td><b>Cantidad</b></td>
+                    <td id='view_quantity'> </td>
+                </tr>
+                <tr>
+                    <td><b>Cantidad total</b></td>
+                    <td id='view_total'> </td>
+                </tr>
+            </table>
+        </div>
+        <div class="main_table">
+        <h3>Material de laboratorio</h3>
+            <table>
+            <tr>
+                <th>Material</th>
+                <th>Almacén</th>
+                <th>Cantidad</th>
+            </tr>
+            {% for storagedLabMaterial in storagedLabMaterials %}
+            <tr class="clickable" id="{{ storagedLabMaterial.pk }}">
+                <td>{{ storagedLabMaterial.labMaterial }}</td>
+                <td>{{ storagedLabMaterial.verbose_storage }}</td>
+                <td>{{ storagedLabMaterial.quantity }}</td>
+                <td class="out_table"><a href="{% url 'core:editStoragedLabMaterial' storagedLabMaterial.pk %}">Alterar cantidad</a></td>
+                <td class="out_table"><a href="{% url 'core:consumeStoragedLabMaterial' storagedLabMaterial.pk %}">Consumir</a></td>
+            </tr>
+            {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="paginator">
+        {% if storagedLabMaterials.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ storagedLabMaterials.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ storagedLabMaterials.number }} / {{ storagedLabMaterials.paginator.num_pages }}
+        </span>
+
+        {% if storagedLabMaterials.has_next %}
+            <a href="?page={{ storagedLabMaterials.next_page_number }}">siguiente</a>
+            <a href="?page={{ storagedLabMaterials.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+
+    <script>
+
+        function view(pk) {
+            fetch('{{backendURL}}' + 'viewStoragedLabMaterial/' + pk)
+            .then(response => {return response.json();})
+            .then(json => {
+                document.getElementById('view_material').textContent = json.BackendStoragedLabMaterial_material
+                document.getElementById('view_type').textContent = json.BackendStoragedLabMaterial_type
+                document.getElementById('view_storage').textContent = json.BackendStoragedLabMaterial_storage
+                document.getElementById('view_quantity').textContent = json.BackendStoragedLabMaterial_quantity
+                document.getElementById('view_total').textContent = json.BackendStoragedLabMaterial_total
+            });
+        }
+
+        var clickables = document.querySelectorAll('.clickable');
+
+        clickables.forEach(function(element) {
+            element.addEventListener('click', function(){
+                view(element.id);
+            });
+        });
+
+    </script>
+
+</body>
+{% endblock %}

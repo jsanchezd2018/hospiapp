@@ -233,25 +233,34 @@ class LabMaterialForm(ModelForm):
         'max_length': 1,
         'class': 'field',
     }
-    materialType = forms.ChoiceField(choices=materialTypes.values(), widget=forms.Select(attrs=name_attrs), label='Material', label_suffix=' ')
+    materialType = forms.ChoiceField(choices=materialTypes.items(), widget=forms.Select(attrs=name_attrs), label='Tipo de material', label_suffix=' ')
     
 
 class StoragedLabMaterialForm(ModelForm):
     class Meta:
         model = StoragedLabMaterial
-        fields = ['labMaterial', 'storage', 'quantity']
+        fields = ['labMaterial', 'quantity']
         redirect_url = 'core:storagedLabMaterials'
         
     labMaterial_attrs= {
         'class': 'field',
+        'id': 'labMaterial_selector',
     }
     labMaterial = forms.ModelChoiceField(queryset= LabMaterial.objects.all(), widget=forms.Select(attrs=labMaterial_attrs), label='Material', label_suffix=' ')
 
-    storage_attrs= {
+    quantity_attrs= {
         'class': 'field',
+        'min': 0,
     }
-    storage = forms.ModelChoiceField(queryset= Storage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén', label_suffix=' ') 
+    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
 
+
+class StoragedLabMaterialFormEdition(ModelForm):
+    class Meta:
+        model = StoragedLabMaterial
+        fields = ['quantity']
+        redirect_url = 'core:storagedLabMaterials'
+        
     quantity_attrs= {
         'class': 'field',
         'min': 0,
@@ -262,13 +271,13 @@ class StoragedLabMaterialForm(ModelForm):
 class SampleForm(ModelForm):
     class Meta:
         model = Sample
-        fields = ['sampleType', 'storage', 'patient', 'date']
+        fields = ['sampleType', 'storage', 'patient', 'date', 'data']
         redirect_url = 'core:samples'
         
     sampleType_attrs= {
         'class': 'field',
     }
-    sampleType = forms.ChoiceField(choices= sampleTypes, widget=forms.Select(attrs=sampleType_attrs), label='Tipo de muestra', label_suffix=' ')
+    sampleType = forms.ChoiceField(choices= sampleTypes.values(), widget=forms.Select(attrs=sampleType_attrs), label='Tipo de muestra', label_suffix=' ')
 
     storage_attrs= {
         'class': 'field',
@@ -285,18 +294,23 @@ class SampleForm(ModelForm):
     }
     date = forms.DateTimeField(widget=forms.DateTimeInput(attrs=date_attrs), label='Fecha de muestra', label_suffix=' ')
 
+    data_attrs= {
+        'class': 'field',
+    }
+    data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ')
+
 
 ### BLOOD ###
 class BloodForm(ModelForm):
     class Meta:
         model = Blood
-        fields = ['BloodGroup', 'capacity', 'date', 'tests', 'reserved']
+        fields = ['BloodGroup', 'capacity', 'date', 'tests', 'reserved', 'process']
         redirect_url = 'core:blood'
         
     BloodGroup_attrs= {
         'class': 'field',
     }
-    BloodGroup = forms.ChoiceField(choices= bloodGroups, widget=forms.Select(attrs=BloodGroup_attrs), label='Grupo sanguíneo', label_suffix=' ')
+    BloodGroup = forms.ChoiceField(choices= bloodGroups.values(), widget=forms.Select(attrs=BloodGroup_attrs), label='Grupo sanguíneo', label_suffix=' ')
 
     capacity_attrs= {
         'class': 'field',
@@ -317,4 +331,9 @@ class BloodForm(ModelForm):
         'class': 'field',
     }
     reserved = forms.BooleanField(widget=forms.CheckboxInput(attrs=reserved_attrs), label='Reservada', label_suffix=' ', required=False)
+
+    process_attrs= {
+        'class': 'field',
+    }
+    process = forms.ChoiceField(choices=processTypes.values(), widget=forms.Select(attrs=process_attrs), label='Tipo de procesamiento', label_suffix=' ')
 

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
+    <title>Almacenes</title>
+</head>
+<body>
+
+    <h1>Almacenes</h1>
+
+    <div class="searcher">
+        <form action="{% url 'core:labStorages' %}" method="GET">
+            <label for="query_generic">Buscar por nombre:</label>
+            <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        <div class="add_button"><a href="{% url 'core:createLabStorage' %}">Nuevo almacén</a></div>
+    </div>
+
+    <table>
+    <tr>
+        <th>Nombre</th>
+    </tr>
+    {% for storage in labStorages %}
+    <tr>
+        <td>{{ storage.name }}</td>
+        <td class="out_table"><a href="{% url 'core:editLabStorage' storage.pk %}">Editar</a></td>
+        <td class="out_table"><a href="{% url 'core:deleteLabStorage' storage.pk %}">Borrar</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+    <div class="paginator">
+        {% if labStorages.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ labStorages.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ labStorages.number }} / {{ labStorages.paginator.num_pages }}
+        </span>
+
+        {% if labStorages.has_next %}
+            <a href="?page={{ labStorages.next_page_number }}">siguiente</a>
+            <a href="?page={{ labStorages.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+</body>
+{% endblock %}

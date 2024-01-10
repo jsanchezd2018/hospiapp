@@ -15,10 +15,10 @@
 
     <div class="searcher">
         <form action="{% url 'core:patientsManagement' %}" method="GET">
-            <label for="query_generic">Buscar por nombre o nº historia:</label>
+            <label for="query_generic">Buscar por nombre o nº historia</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
             <br>
-            <label for="query_doctor">Buscar por doctor asignado:</label>
+            <label for="query_doctor">Buscar por doctor asignado</label>
             <select id="query_doctor"  name="query_doctor">
                 <option value="0"></option>
                 {% for doctor in doctors %}
@@ -26,11 +26,18 @@
                 {% endfor %}
             </select>
             <br>
-            <label for="query_date_1">Fecha de ingreso: </label>
-            <input type="text" id="query_date_1" name="query_date_1" value={{ query_date_1 }}>
-            <label for="query_date_2">-</label>
+            <label for="query_date_1">Fecha de ingreso</label>
+            <input type="text" id="query_date_1" name="query_date_1" class="date" value={{ query_date_1 }}>
+            <label for="query_date_2"><b>-</b></label>
             <input type="text" id="query_date_2" name="query_date_2" value={{ query_date_2 }}>
+            <button type="button" onclick="todayDate()" id="today">Hoy</button>
             <br>
+            <label for="query_status">Estado del paciente</label>
+            <select id="query_status"  name="query_status">
+                <option value="0">Todos</option>
+                <option value="1" {% if query_status == 1 %}selected{% endif %} >Ingresados</option>
+                <option value="2" {% if query_status == 2 %}selected{% endif %} >No ingresados</option>
+            </select>
             <h3>Buscar por cama</h3>
             <label for="query_service">Servicio</label>
             <select id="query_service"  name="query_service" onchange="filterInManagement()">
@@ -183,6 +190,13 @@
             });
         }
         filterInManagement();
+
+        function todayDate() {
+            const currentDate = new Date();
+            var today = ("0"+currentDate.getDate()).slice(-2) + "/" + ("0"+(currentDate.getMonth()+1)).slice(-2) + "/" + currentDate.getFullYear();
+            document.getElementById('query_date_1').setAttribute('value', today);
+            document.getElementById('query_date_2').setAttribute('value', today);
+        }
 
     </script>
 

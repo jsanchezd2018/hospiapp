@@ -12,10 +12,10 @@
 
     <div class="searcher">
         <form action="{% url 'core:storagedDrugs' %}" method="GET">
-            <label for="query_generic">Buscar por nombre del medicamento:</label>
+            <label for="query_generic">Buscar por nombre del medicamento</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
             <br>
-            <label for="query_type">Buscar por grupo de medicamento:</label>
+            <label for="query_type">Buscar por grupo de medicamento</label>
             <select id="query_type"  name="query_type">
                 <option value="0"></option>
                 {% for type in types %}
@@ -23,12 +23,13 @@
                 {% endfor %}
             </select>
             <br>
-            <label for="query_date_1">Fecha de caducidad: </label>
+            <label for="query_date_1">Fecha de caducidad</label>
             <input type="text" id="query_date_1" name="query_date_1" value={{ query_date_1 }}>
-            <label for="query_date_2">-</label>
+            <label for="query_date_2"><b>-</b></label>
             <input type="text" id="query_date_2" name="query_date_2" value={{ query_date_2 }}>
+            <button type="button" onclick="todayDate()" id="today">Hoy</button>
             <br>
-            <label for="query_storage">Buscar por almacén:</label>
+            <label for="query_storage">Buscar por almacén</label>
             <select id="query_storage"  name="query_storage">
                 <option value=""></option>
                 {% for storage in storages %}
@@ -140,6 +141,13 @@
                 view(element.id);
             });
         });
+
+        function todayDate() {
+            const currentDate = new Date();
+            var today = ("0"+currentDate.getDate()).slice(-2) + "/" + ("0"+(currentDate.getMonth()+1)).slice(-2) + "/" + currentDate.getFullYear();
+            document.getElementById('query_date_1').setAttribute('value', today);
+            document.getElementById('query_date_2').setAttribute('value', today);
+        }
 
     </script>
 

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db import models
 
 ### CONSTANTS ###
@@ -20,6 +21,12 @@ def genericNoneVerbose(potencialNone):
 
 ### PHYSICAL PLACES ###
 class Storage(models.Model):
+    name = models.CharField(max_length=20, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+    
+class LabStorage(models.Model):
     name = models.CharField(max_length=20, unique=True)
 
     def __str__(self) -> str:
@@ -142,10 +149,10 @@ class Patient(models.Model):
 ### LAB ###
 
 materialTypes = {
-                    '1': 'Reactivos refrigerados',
-                    '2': 'Reactivos en polvo',
-                    '3': 'Pines reactivos',
-                    '4': 'Material común'
+                    '1': 'Material común',
+                    '2': 'Reactivos refrigerados',
+                    '3': 'Reactivos en polvo',
+                    '4': 'Pines reactivos',
                 }
 
 sampleTypes = {
@@ -157,12 +164,32 @@ sampleTypes = {
                 '6': 'Otros',
             }
 
+sampleDurations = {
+                    '1': 7,
+                    '2': 14,
+                    '3': 7,
+                    '4': 1000,
+                    '5': 1000,
+                    '6': 1000,
+}
+
 class LabMaterial(models.Model):
     name = models.CharField(max_length=20, unique=True)
     materialType = models.CharField(max_length=1)
 
     def __str__(self) -> str:
         return self.name
+    
+    @property
+    def verbose_materialType(self):
+        return materialTypes[self.materialType]
+    
+    @property
+    def total(self):
+        result = 0
+        for labMaterial in StoragedLabMaterial.objects.filter(labMaterial=self):
+            result += labMaterial.quantity
+        return result
 
 class StoragedLabMaterial(models.Model):
     labMaterial = models.ForeignKey(LabMaterial, on_delete=models.CASCADE)
@@ -171,6 +198,10 @@ class StoragedLabMaterial(models.Model):
 
     def __str__(self) -> str:
         return self.labMaterial.name
+    
+    @property
+    def verbose_storage(self):
+        return genericNoneVerbose(self.storage)
 
     class Meta:
         models.UniqueConstraint(fields=['labMaterial', 'storage'], name='no_multiplicity')
@@ -180,9 +211,14 @@ class Sample(models.Model):
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateTimeField()
+    data = models.CharField(max_length=500, null=True, blank=True)
 
     def __str__(self) -> str:
         return self.patient.name + '_' + self.sampleType.value + '_' + self.date
+    
+    @property
+    def expirationDate(self):
+        return self.date + timedelta(days=sampleDurations[self.sampleType])
 
 
 ### BLOOD ###
@@ -198,12 +234,29 @@ bloodGroups = {
                 '8': '0-', 
             }
 
+processTypes = {
+            '1': 'Con glóbulos',
+            '2': 'Centrifugado (plaquetas)',
+            '3': 'Plasma',
+}
+
+processDurations = {
+                    '1': 42,
+                    '2': 7,
+                    '3': 1000,
+}
+
 class Blood(models.Model):
     bloodGroup = models.CharField(max_length=1)
     capacity = models.IntegerField()
     date = models.DateTimeField()
     tests = models.IntegerField()
     reserved = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True)
+    process = models.CharField(max_length=1)
     
     def __str__(self) -> str:
         return self.pk
+    
+    @property
+    def expirationDate(self):
+        return self.date + timedelta(days=processDurations[self.process])
