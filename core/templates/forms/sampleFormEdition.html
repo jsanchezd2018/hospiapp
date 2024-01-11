@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+
+    <h2>Datos de la muestra</h2>
+    <table>
+        <tr>
+            <td>Tipo de muestra</td>
+            <td>{{ sampleType }}</td>
+        </tr>
+        <tr>
+            <td>Almacén</td>
+            <td>{{ storage }}</td>
+        </tr>
+        <tr>
+            <td>Paciente</td>
+            <td>{{ patient }}</td>
+        </tr>
+        <tr>
+            <td>Fecha de muestra</td>
+            <td>{{ date }}</td>
+        </tr>
+    </table>
+
+    <form method="post" action="{% url function_url pk %}">
+        {% csrf_token %}
+        <table>
+        {% for field in form %}
+        <tr><td>
+        {{ field.label_tag }}
+        </td><td>
+        {{ field }}
+        {{ field.errors }}
+        </td></tr>
+        {% endfor %}
+        </table>
+        <button type="submit">Guardar</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
+
+</body>
+{% endblock %}

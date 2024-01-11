@@ -18,6 +18,19 @@ class StorageForm(ModelForm):
         'class': 'field',
     }
     name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
+
+
+class LabStorageForm(ModelForm):
+    class Meta:
+        model = LabStorage
+        fields = ['name']
+        redirect_url = 'core:labStorages'
+        
+    name_attrs= {
+        'max_length': 20,
+        'class': 'field',
+    }
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')    
     
 
 class ServiceForm(ModelForm):
@@ -271,21 +284,17 @@ class StoragedLabMaterialFormEdition(ModelForm):
 class SampleForm(ModelForm):
     class Meta:
         model = Sample
-        fields = ['sampleType', 'storage', 'patient', 'date', 'data']
+        fields = ['sampleType', 'patient', 'date', 'data']
         redirect_url = 'core:samples'
         
     sampleType_attrs= {
         'class': 'field',
     }
-    sampleType = forms.ChoiceField(choices= sampleTypes.values(), widget=forms.Select(attrs=sampleType_attrs), label='Tipo de muestra', label_suffix=' ')
-
-    storage_attrs= {
-        'class': 'field',
-    }
-    storage = forms.ModelChoiceField(queryset= Storage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén', label_suffix=' ') 
+    sampleType = forms.ChoiceField(choices= sampleTypes.items(), widget=forms.Select(attrs=sampleType_attrs), label='Tipo de muestra', label_suffix=' ')
 
     patient_attrs= {
         'class': 'field',
+        'id': 'patient_selector'
     }
     patient = forms.ModelChoiceField(queryset= Patient.objects.all(), widget=forms.Select(attrs=patient_attrs), label='Paciente', label_suffix=' ')
     
@@ -297,7 +306,19 @@ class SampleForm(ModelForm):
     data_attrs= {
         'class': 'field',
     }
-    data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ')
+    data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ', required= False)
+
+
+class SampleFormEdition(ModelForm):
+    class Meta:
+        model = Sample
+        fields = ['data']
+        redirect_url = 'core:samples'
+        
+    data_attrs= {
+        'class': 'field',
+    }
+    data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ', required= False)
 
 
 ### BLOOD ###
@@ -310,7 +331,7 @@ class BloodForm(ModelForm):
     BloodGroup_attrs= {
         'class': 'field',
     }
-    BloodGroup = forms.ChoiceField(choices= bloodGroups.values(), widget=forms.Select(attrs=BloodGroup_attrs), label='Grupo sanguíneo', label_suffix=' ')
+    BloodGroup = forms.ChoiceField(choices= bloodGroups.items(), widget=forms.Select(attrs=BloodGroup_attrs), label='Grupo sanguíneo', label_suffix=' ')
 
     capacity_attrs= {
         'class': 'field',
@@ -335,5 +356,5 @@ class BloodForm(ModelForm):
     process_attrs= {
         'class': 'field',
     }
-    process = forms.ChoiceField(choices=processTypes.values(), widget=forms.Select(attrs=process_attrs), label='Tipo de procesamiento', label_suffix=' ')
+    process = forms.ChoiceField(choices=processTypes.items(), widget=forms.Select(attrs=process_attrs), label='Tipo de procesamiento', label_suffix=' ')
 

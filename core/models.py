@@ -206,19 +206,26 @@ class StoragedLabMaterial(models.Model):
     class Meta:
         models.UniqueConstraint(fields=['labMaterial', 'storage'], name='no_multiplicity')
 
+def showDate(date):
+    date = str(date)
+    return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]
+
 class Sample(models.Model):
     sampleType = models.CharField(max_length=1)
-    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
+    storage = models.ForeignKey(LabStorage, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateTimeField()
     data = models.CharField(max_length=500, null=True, blank=True)
 
     def __str__(self) -> str:
-        return self.patient.name + '_' + self.sampleType.value + '_' + self.date
-    
+        return self.patient.name + '_' + self.verbose_sampleType + ' (ID:' + str(self.pk) + ')'
+
     @property
     def expirationDate(self):
-        return self.date + timedelta(days=sampleDurations[self.sampleType])
+        return showDate(self.date + timedelta(days=sampleDurations[self.sampleType]))
+    @property
+    def verbose_sampleType(self):
+        return sampleTypes[self.sampleType]
 
 
 ### BLOOD ###

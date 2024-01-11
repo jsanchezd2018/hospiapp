@@ -79,17 +79,55 @@ def deleteGeneric(request, klass, pk, function_url, title):
 
 ### AUXILIAR FUNCTIONS ###
 def isValidDate(date):
-    if date != '':
-        return  (   len(date) == 10 and
-                    date[0].isdigit() and date[1].isdigit() and date[2] == '/' and
-                    date[3].isdigit() and date[4].isdigit() and date[5] == '/' and
-                    date[6].isdigit() and date[7].isdigit() and date[8].isdigit() and date[9].isdigit() and
-                    int(date[0]+date[1]) in range(1,31) and int(date[3]+date[4]) in range(1,12)
-                )
-    return False
+    try:
+        if date != '':
+            return  (   len(date) == 10 and
+                        date[0].isdigit() and date[1].isdigit() and date[2] == '/' and
+                        date[3].isdigit() and date[4].isdigit() and date[5] == '/' and
+                        date[6].isdigit() and date[7].isdigit() and date[8].isdigit() and date[9].isdigit() and
+                        int(date[0]+date[1]) in range(1,31) and int(date[3]+date[4]) in range(1,12)
+                    )
+        return False
+    except:
+        return False
 
 def dateFormat(date):
-    return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]
+    try:
+        return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]
+    except:
+        return ''
+
+def isValidDateTime(date):
+    try:
+        if date != '':
+            return  (   len(date) == 10 and
+                        date[0].isdigit() and date[1].isdigit() and date[2] == '/' and
+                        date[3].isdigit() and date[4].isdigit() and date[5] == '/' and
+                        date[6].isdigit() and date[7].isdigit() and date[8].isdigit() and date[9].isdigit() and
+                        int(date[0]+date[1]) in range(1,31) and int(date[3]+date[4]) in range(1,12) and
+                        date[10] == ' ' and date[11].isdigit() and date[12].isdigit() and
+                        date[13] == ':' and date[14].isdigit() and date[15] == ' ' and
+                        int(date[11]+date[12]) in range(0,23) and int(date[14]+date[15]) in range(0,59)
+                    )
+        return False
+    except:
+        return False
+
+def dateTimeFormat(date):
+    try:
+        return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]+' '+date[11]+date[12]+':'+date[14]+date[15]
+    except:
+        return 'uwu'
+    
+def showDate(date):
+    date = str(date)
+    return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]
+
+def showDateTime(date):
+    date = str(date)
+    return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]+' '+date[11]+date[12]+':'+date[14]+date[15]
+
+
 
 ### FIRST PART ###
 
@@ -136,17 +174,17 @@ def storages(request):
 @csrf_protect
 @login_required
 def createLabStorage(request):
-    return createGeneric(request, StorageForm, 'core:createLabStorage', 'Nuevo almacén')
+    return createGeneric(request, LabStorageForm, 'core:createLabStorage', 'Nuevo almacén')
 
 @csrf_protect
 @login_required
 def editLabStorage(request, pk):
-    return editGeneric(request, StorageForm, pk, 'core:editLabStorage', 'Editar almacén')
+    return editGeneric(request, LabStorageForm, pk, 'core:editLabStorage', 'Editar almacén')
 
 @csrf_protect
 @login_required
 def deleteLabStorage(request, pk):
-    return deleteGeneric(request, StorageForm, pk, 'core:deleteLabStorage', 'Borrar almacén')
+    return deleteGeneric(request, LabStorageForm, pk, 'core:deleteLabStorage', 'Borrar almacén')
 
 @csrf_protect
 @login_required
@@ -843,6 +881,103 @@ def consumeStoragedLabMaterial(request, pk):
     return redirect('core:storagedLabMaterials')
 
 
+### SAMPLES ###
+@csrf_protect
+@login_required
+def createSample(request, storage):
+    if request.method == 'POST':
+        form = SampleForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.storage = get_object_or_404(LabStorage, pk=storage)
+            form.save()
+            return redirect('core:samples')
+    else:
+        form = SampleForm()
+    ctx = {
+        'form': form,
+        'title': 'Añadir muestra al almacén ' + get_object_or_404(LabStorage, pk=storage).name,
+        'back_url': 'core:samples',
+        'function_url': 'core:createSample',
+        'backendURL': urls.backendURL,
+        'storage': storage,
+    }
+    return render(request, 'forms/sampleForm.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+def editSample(request, pk):
+    object = get_object_or_404(Sample, pk=pk)
+    if request.method == 'POST':
+        form = SampleFormEdition(request.POST, instance=object)
+        if form.is_valid():
+            form.save()
+            return redirect(SampleForm.Meta.redirect_url)
+    else:
+        form = SampleFormEdition(instance=object)
+    
+    ctx = {
+        'form': form,
+        'title': 'Editar datos de muestra',
+        'back_url': SampleFormEdition.Meta.redirect_url,
+        'function_url': 'core:editSample',
+        'pk': pk,
+        'sampleType': object.verbose_sampleType,
+        'storage': object.storage,
+        'patient': object.patient,
+        'date': object.date,
+    }
+    return render(request, 'forms/sampleFormEdition.html', context=ctx)
+@csrf_protect
+@login_required
+def deleteSample(request, pk):
+    return deleteGeneric(request, SampleForm, pk, 'core:deleteSample', 'Descartar muestra')
+
+
+@csrf_protect
+@login_required
+def samples(request):
+    # Queries
+    query_type = request.GET.get('query_type', '0')
+    query_patient = request.GET.get('query_patient', '')
+    query_date_1 = request.GET.get('query_date_1', '')
+    query_date_2 = request.GET.get('query_date_2', '')
+    query_storage = request.GET.get('query_storage', '')
+    samples = Sample.objects.all().order_by('-date')
+    allSamples = samples
+    if query_storage != '':
+        samples = samples.filter( storage=query_storage )
+        query_storage = int(query_storage)
+    if query_type != '0':
+        samples = samples.filter(Q(sampleType=query_type))
+    if query_patient != '':
+        samples = samples.filter(Q(patient__name__icontains=query_patient) | (Q(patient__historyNumber__icontains=query_patient)))
+    if isValidDateTime(query_date_1) and isValidDateTime(query_date_2):
+        samples = samples.filter(date__range=[dateTimeFormat(query_date_1), dateTimeFormat(query_date_2)])
+    # Paginator
+    paginator = Paginator(samples, N)
+    page = request.GET.get('page', 1)
+    try:
+        samples = paginator.page(page)
+    except EmptyPage:
+        samples = paginator.page(paginator.num_pages)
+    # Render
+    ctx = {
+        'allSamples': allSamples,
+        'samples': samples,
+        'query_type': query_type,
+        'query_patient': query_patient,
+        'query_date_1': query_date_1,
+        'query_date_2': query_date_2,
+        'query_storage': query_storage,
+        'types': sampleTypes.items(),
+        'storages': LabStorage.objects.all(),
+        'backendURL': urls.backendURL,
+    }
+    return render(request, 'functionalities/samples.html', context=ctx)
+
+
 ### BACKEND FUNCTIONS ###
 @csrf_protect
 @login_required
@@ -900,7 +1035,6 @@ def filterByType(request, type):
         return JsonResponse({'result': result})
     else:
         return JsonResponse({})
-
 
 @csrf_protect
 @login_required
@@ -969,6 +1103,25 @@ def viewStoragedLabMaterial(request, pk):
                                 'BackendStoragedLabMaterial_storage': storagedLabMaterial.storage.name,
                                 'BackendStoragedLabMaterial_quantity': storagedLabMaterial.quantity,
                                 'BackendStoragedLabMaterial_total': storagedLabMaterial.labMaterial.total,
+                            })
+    else:
+        return JsonResponse({})
+    
+@csrf_protect
+@login_required
+def viewSample(request, pk):
+    if request.method == 'GET':
+
+        sample = get_object_or_404(Sample, pk=pk)
+        
+        return JsonResponse({
+                                'BackendSample_pk': sample.pk,
+                                'BackendSample_patient': sample.patient.name,
+                                'BackendSample_type': sample.verbose_sampleType,
+                                'BackendSample_date': showDateTime(sample.date),
+                                'BackendSample_storage': sample.storage.name,
+                                'BackendSample_expirationDate': showDate(sample.expirationDate),
+                                'BackendSample_data': sample.data,
                             })
     else:
         return JsonResponse({})

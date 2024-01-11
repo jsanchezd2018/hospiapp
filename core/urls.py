@@ -96,7 +96,13 @@ storagedLabMaterial_patterns = [
     path('consumir/<int:pk>', views.consumeStoragedLabMaterial, name='consumeStoragedLabMaterial'),
 ]
 
-
+### SAMPLE ###
+sample_patterns = [
+    path('', views.samples, name='samples'),
+    path('crear/<int:storage>', views.createSample, name='createSample'),
+    path('editar/<int:pk>', views.editSample, name='editSample'),
+    path('borrar/<int:pk>', views.deleteSample, name='deleteSample'),
+]
 
 ### URL PATTERNS ###
 
@@ -121,6 +127,7 @@ urlpatterns = [
     # lab
     path('materiales/', include(labMaterial_patterns)),
     path('laboratorio/', include(storagedLabMaterial_patterns)),
+    path('muestras/', include(sample_patterns)),
 
     # login / logout
     #path('login/', views.userLogin, name='userLogin'),
@@ -135,5 +142,6 @@ urlpatterns = [
     path('viewPatient/<int:pk>', views.viewPatient, name='viewPatient'),
     path('viewStoragedDrug/<int:pk>', views.viewStoragedDrug, name='viewStoragedDrug'),
     path('viewStoragedLabMaterial/<int:pk>', views.viewStoragedLabMaterial, name='viewStoragedLabMaterial'),
+    path('viewSample/<int:pk>', views.viewSample, name='viewSample'),
 
 ]

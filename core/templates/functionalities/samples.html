@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
+    <title>Muestras</title>
+</head>
+<body>
+
+    <h1>Muestras</h1>
+
+    <div class="searcher">
+        <form action="{% url 'core:samples' %}" method="GET">
+            <label for="query_type">Tipo de muestra</label>
+            <select id="query_type"  name="query_type">
+                <option value="0"></option>
+                {% for key, value in types %}
+                <option value="{{ key }}" {% if query_type == key %}selected{% endif %} >{{ value }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="query_patient">Paciente (nombre / nº historia)</label>
+            <input type="text" name="query_patient" id="query_patient" value="{{ query_patient }}">
+            <br>
+            <label for="query_date_1">Hora de muestra</label>
+            <input type="text" id="query_date_1" name="query_date_1" value="{{ query_date_1 }}">
+            <label for="query_date_2"><b>-</b></label>
+            <input type="text" id="query_date_2" name="query_date_2" value="{{ query_date_2 }}">
+            <button type="button" onclick="todayDate()">Hoy</button>
+            <br>
+            <label for="query_storage">Almacén</label>
+            <select id="query_storage"  name="query_storage">
+                <option value=""></option>
+                {% for storage in storages %}
+                <option value="{{ storage.pk }}" {% if query_storage == storage.pk %}selected{% endif %} >{{ storage }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        {% if query_storage %}<div class="add_button">
+            <a href="{% url "core:createSample" query_storage %}">Añadir muestra al almacén</a>
+        </div>{% endif %}
+    </div>
+
+    <div class="grid">
+        <div class="viewer">
+            <h3>Datos de la muestra</h3>
+            <table class="viewer_table">
+                <tr>
+                    <td><b>ID</b></td>
+                    <td id='view_ID'> </td>
+                </tr>
+                <tr>
+                    <td><b>Paciente</b></td>
+                    <td id='view_patient'> </td>
+                </tr>
+                <tr>
+                    <td><b>Tipo de muestra</b></td>
+                    <td id='view_type'> </td>
+                </tr>
+                <tr>
+                    <td><b>Fecha - hora muestra</b></td>
+                    <td id='view_date'> </td>
+                </tr>
+                <tr>
+                    <td><b>Almacén</b></td>
+                    <td id='view_storage'> </td>
+                </tr>
+                <tr>
+                    <td><b>Fecha de caducidad</b></td>
+                    <td id='view_expirationDate'> </td>
+                </tr>
+                <tr>
+                    <td><b>Datos</b></td>
+                    <td id='view_data'> </td>
+                </tr>
+            </table>
+            <h3>Caducidad próxima</h3>
+            <table class="viewer_table">
+                <thead><tr><td><b>ID</b></td><td><b>Fecha de caducidad</b></td></tr></thead>
+                {% for sample in allSamples %}
+                <tr class="deletableRow"><td>{{ sample.pk }}</td>
+                <td id="expirationDate">{{ sample.expirationDate }}</td></tr>
+                {% endfor %}
+            </table>
+            
+        </div>
+        <div class="main_table">
+            <h3>Muestras</h3>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Paciente</th>
+                    <th>Fecha de muestra</th>
+                    <th>Tipo de muestra</th>
+                    <th>Almacén</th>
+                </tr>
+                {% for sample in samples %}
+                <tr class="clickable" id="{{ sample.pk }}">
+                    <td>{{ sample.pk }}</td>
+                    <td>{{ sample.patient }}</td>
+                    <td>{{ sample.date }}</td>
+                    <td>{{ sample.verbose_sampleType }}</td>
+                    <td>{{ sample.storage }}</td>
+                    <td class="out_table"><a href="{% url "core:editSample" sample.pk %}">Editar datos</a></td>
+                    <td class="out_table"><a href="{% url "core:deleteSample" sample.pk %}">Descartar muestra</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="paginator">
+        {% if samples.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ samples.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ samples.number }} / {{ samples.paginator.num_pages }}
+        </span>
+
+        {% if samples.has_next %}
+            <a href="?page={{ samples.next_page_number }}">siguiente</a>
+            <a href="?page={{ samples.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+    <script>
+
+        function view(pk) {
+            fetch('{{backendURL}}' + 'viewSample/' + pk)
+            .then(response => {return response.json();})
+            .then(json => {
+                document.getElementById('view_ID').textContent = json.BackendSample_pk
+                document.getElementById('view_patient').textContent = json.BackendSample_patient
+                document.getElementById('view_type').textContent = json.BackendSample_type
+                document.getElementById('view_date').textContent = json.BackendSample_date
+                document.getElementById('view_storage').textContent = json.BackendSample_storage
+                document.getElementById('view_expirationDate').textContent = json.BackendSample_expirationDate
+                document.getElementById('view_data').textContent = json.BackendSample_data
+            });
+        }
+
+        var clickables = document.querySelectorAll('.clickable');
+        clickables.forEach(function(element) {
+            element.addEventListener('click', function(){
+                view(element.id);
+            });
+        });
+
+        const currentDate = new Date();
+
+        function todayDate() {
+            var today0000 = ("0"+currentDate.getDate()).slice(-2) + "/" + ("0"+(currentDate.getMonth()+1)).slice(-2)
+            + "/" + currentDate.getFullYear() + ' 00:00';
+            var today2359 = ("0"+currentDate.getDate()).slice(-2) + "/" + ("0"+(currentDate.getMonth()+1)).slice(-2)
+            + "/" + currentDate.getFullYear() + ' 23:59';
+            document.getElementById('query_date_1').setAttribute('value', today0000);
+            document.getElementById('query_date_2').setAttribute('value', today2359);
+        }
+
+        function toDate(str){
+            splited = str.split('/');
+            return new Date(splited[2], splited[1]-1, splited[0]);
+        }
+
+        var deletableRows = document.querySelectorAll('.deletableRow');
+        deletableRows.forEach(function(deletableRow) {
+            var expirationDate = deletableRow.querySelector('#expirationDate').innerHTML;
+            if (new Date(toDate(expirationDate) - 604800000) >= currentDate){
+                deletableRow.innerHTML = '';
+            }
+        });
+
+    </script>
+
+</body>
+{% endblock %}

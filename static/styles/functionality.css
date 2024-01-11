@@ -72,8 +72,13 @@ input, select, label, button {
     table-layout: fixed;
 }
 
-.viewer_table td{
+.viewer_table td {
     word-wrap: break-word;
+}
+
+.viewer_table thead td{
+    color: white;
+    background-color: #cc6603;
 }
 
 .main_table {

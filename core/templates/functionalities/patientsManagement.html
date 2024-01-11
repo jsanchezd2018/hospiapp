@@ -27,9 +27,9 @@
             </select>
             <br>
             <label for="query_date_1">Fecha de ingreso</label>
-            <input type="text" id="query_date_1" name="query_date_1" class="date" value={{ query_date_1 }}>
+            <input type="text" id="query_date_1" name="query_date_1" class="date" value="{{ query_date_1 }}">
             <label for="query_date_2"><b>-</b></label>
-            <input type="text" id="query_date_2" name="query_date_2" value={{ query_date_2 }}>
+            <input type="text" id="query_date_2" name="query_date_2" value="{{ query_date_2 }}">
             <button type="button" onclick="todayDate()" id="today">Hoy</button>
             <br>
             <label for="query_status">Estado del paciente</label>
@@ -47,8 +47,8 @@
                 {% endfor %}
             </select>
             <label for="query_floor">Planta</label>
-            <input type="number" id="query_floor" name="query_floor" onchange="filterInManagement()" value={{ query_floor }}>
-            <label for="query_bed">Cama</label>
+            <input type="number" id="query_floor" name="query_floor" onchange="filterInManagement()" value="{{ query_floor }}">
+            <label for="bed_selector">Cama</label>
             <select name="query_bed" id="bed_selector"></select>
             {% for bed in beds %}
             {% if query_bed == bed.pk %}selected{% endif %}
