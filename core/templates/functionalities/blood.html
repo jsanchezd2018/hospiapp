@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
+    <title>Sangre</title>
+</head>
+<body>
+
+    <h1>Bolsas de sangre</h1>
+
+    <div class="searcher">
+        <form action="{% url 'core:blood' %}" method="GET">
+            <label for="query_type">Grupo sanguíneo</label>
+            <select id="query_type"  name="query_type">
+                <option value="0"></option>
+                {% for key, value in types %}
+                <option value="{{ key }}" {% if query_type == key %}selected{% endif %} >{{ value }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="query_patient">Paciente (nombre / nº historia)</label>
+            <input type="text" name="query_patient" id="query_patient" value="{{ query_patient }}">
+            <br>
+            <label for="query_date_1">Hora de recepción</label>
+            <input type="text" id="query_date_1" name="query_date_1" value="{{ query_date_1 }}">
+            <label for="query_date_2"><b>-</b></label>
+            <input type="text" id="query_date_2" name="query_date_2" value="{{ query_date_2 }}">
+            <button type="button" onclick="todayDate()">Hoy</button>
+            <br>
+            <label for="query_process">Contenido</label>
+            <select id="query_process"  name="query_process">
+                <option value="0"></option>
+                {% for key, value in processes %}
+                <option value="{{ key }}" {% if query_process == key %}selected{% endif %} >{{ value }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="query_storage">Almacén</label>
+            <select id="query_storage"  name="query_storage">
+                <option value=""></option>
+                {% for storage in storages %}
+                <option value="{{ storage.pk }}" {% if query_storage == storage.pk %}selected{% endif %} >{{ storage }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="submit">Buscar</button>
+        </form>
+        {% if query_storage %}<div class="add_button">
+            <a href="{% url "core:createBlood" query_storage %}">Añadir bolsa al almacén</a>
+        </div>{% endif %}
+    </div>
+
+    <div class="grid">
+        <div class="viewer">
+            <h3>Datos de la bolsa</h3>
+            <table class="viewer_table">
+                <tr>
+                    <td><b>ID</b></td>
+                    <td id='view_ID'> </td>
+                </tr>
+                <tr>
+                    <td><b>Reserva</b></td>
+                    <td id='view_patient'> </td>
+                </tr>
+                <tr>
+                    <td><b>Grupo sanguíneo</b></td>
+                    <td id='view_type'> </td>
+                </tr>
+                <tr>
+                    <td><b>Fecha - hora muestra</b></td>
+                    <td id='view_date'> </td>
+                </tr>
+                <tr>
+                    <td><b>Almacén</b></td>
+                    <td id='view_storage'> </td>
+                </tr>
+                <tr>
+                    <td><b>Fecha de caducidad</b></td>
+                    <td id='view_expirationDate'> </td>
+                </tr>
+                <tr>
+                    <td><b>Volumen (mL)</b></td>
+                    <td id='view_capacity'> </td>
+                </tr>
+                <tr>
+                    <td><b>Tipo de contenido</b></td>
+                    <td id='view_process'> </td>
+                </tr>
+            </table>
+            <h3>Sangre disponible (L)</h3>
+            <table class="viewer_table">
+                <tr>
+                    <td><b>A+</b></td>
+                    <td id='view_Ap'> </td>
+                </tr>
+                <tr>
+                    <td><b>A-</b></td>
+                    <td id='view_Am'> </td>
+                </tr>
+                <tr>
+                    <td><b>B+</b></td>
+                    <td id='view_Bp'> </td>
+                </tr>
+                <tr>
+                    <td><b>B-</b></td>
+                    <td id='view_Bm'> </td>
+                </tr>
+                <tr>
+                    <td><b>AB+</b></td>
+                    <td id='view_ABp'> </td>
+                </tr>
+                <tr>
+                    <td><b>AB-</b></td>
+                    <td id='view_ABm'> </td>
+                </tr>
+                <tr>
+                    <td><b>0+</b></td>
+                    <td id='view_0p'> </td>
+                </tr>
+                <tr>
+                    <td><b>0-</b></td>
+                    <td id='view_0m'> </td>
+                </tr>
+            </table>
+            <h3>Caducidad próxima</h3>
+            <table class="viewer_table">
+                <thead><tr><td><b>ID</b></td><td><b>Fecha de caducidad</b></td></tr></thead>
+                {% for bag in allBloodBags %}
+                <tr class="deletableRow"><td>{{ bag.pk }}</td>
+                <td id="expirationDate">{{ bag.expirationDate }}</td></tr>
+                {% endfor %}
+            </table>
+            
+        </div>
+        <div class="main_table">
+            <h3>Bolsas de sangre</h3>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Reserva</th>
+                    <th>Fecha de recepción</th>
+                    <th>Grupo sanguíneo</th>
+                    <th>Contenido</th>
+                    <th>Volumen (mL)</th>
+                    <th>Almacén</th>
+                </tr>
+                {% for bag in blood %}
+                <tr class="clickable" id="{{ bag.pk }}">
+                    <td>{{ bag.pk }}</td>
+                    <td>{{ bag.verbose_patient }}</td>
+                    <td>{{ bag.date }}</td>
+                    <td>{{ bag.verbose_type }}</td>
+                    <td>{{ bag.verbose_process }}</td>
+                    <td>{{ bag.capacity }}</td>
+                    <td>{{ bag.storage }}</td>
+                    <td class="out_table"><a href="{% url "core:editBlood" bag.pk %}">Editar bolsa</a></td>
+                    <td class="out_table"><a href="{% url "core:deleteBlood" bag.pk %}">Consumir</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="paginator">
+        {% if blood.has_previous %}
+            <a href="?page=1">&laquo; primera</a>
+            <a href="?page={{ blood.previous_page_number }}">anterior</a>
+        {% endif %}
+
+        <span class="current">
+            {{ blood.number }} / {{ blood.paginator.num_pages }}
+        </span>
+
+        {% if blood.has_next %}
+            <a href="?page={{ blood.next_page_number }}">siguiente</a>
+            <a href="?page={{ blood.paginator.num_pages }}">última &raquo;</a>
+        {% endif %}
+    </div>
+
+    <script>
+
+        function getAllBlood() {
+            fetch('{{backendURL}}' + 'getAllBlood/')
+            .then(response => {return response.json();})
+            .then(json => {
+                document.getElementById('view_Ap').textContent = json.view_Ap
+                document.getElementById('view_Am').textContent = json.view_Am
+                document.getElementById('view_Bp').textContent = json.view_Bp
+                document.getElementById('view_Bm').textContent = json.view_Bm
+                document.getElementById('view_ABp').textContent = json.view_ABp
+                document.getElementById('view_ABm').textContent = json.view_ABm
+                document.getElementById('view_0p').textContent = json.view_Op
+                document.getElementById('view_0m').textContent = json.view_Om
+            });
+        }
+        getAllBlood();
+
+        function viewBlood(pk) {
+            fetch('{{backendURL}}' + 'viewBlood/' + pk)
+            .then(response => {return response.json();})
+            .then(json => {
+                document.getElementById('view_ID').textContent = json.BackendBlood_pk
+                document.getElementById('view_patient').textContent = json.BackendBlood_patient
+                document.getElementById('view_type').textContent = json.BackendBlood_type
+                document.getElementById('view_date').textContent = json.BackendBlood_date
+                document.getElementById('view_storage').textContent = json.BackendBlood_storage
+                document.getElementById('view_expirationDate').textContent = json.BackendBlood_expirationDate
+                document.getElementById('view_capacity').textContent = json.BackendBlood_capacity
+                document.getElementById('view_process').textContent = json.BackendBlood_process
+            });
+        }
+
+        var clickables = document.querySelectorAll('.clickable');
+        clickables.forEach(function(element) {
+            element.addEventListener('click', function(){
+                viewBlood(element.id);
+            });
+        });
+
+        const currentDate = new Date();
+
+        function todayDate() {
+            var today0000 = ("0"+currentDate.getDate()).slice(-2) + "/" + ("0"+(currentDate.getMonth()+1)).slice(-2)
+            + "/" + currentDate.getFullYear() + ' 00:00';
+            var today2359 = ("0"+currentDate.getDate()).slice(-2) + "/" + ("0"+(currentDate.getMonth()+1)).slice(-2)
+            + "/" + currentDate.getFullYear() + ' 23:59';
+            document.getElementById('query_date_1').setAttribute('value', today0000);
+            document.getElementById('query_date_2').setAttribute('value', today2359);
+        }
+
+        function toDate(str){
+            splited = str.split('/');
+            return new Date(splited[2], splited[1]-1, splited[0]);
+        }
+
+        var deletableRows = document.querySelectorAll('.deletableRow');
+        deletableRows.forEach(function(deletableRow) {
+            var expirationDate = deletableRow.querySelector('#expirationDate').innerHTML;
+            if (new Date(toDate(expirationDate) - 604800000) >= currentDate){
+                deletableRow.innerHTML = '';
+            }
+        });
+
+    </script>
+
+</body>
+{% endblock %}

@@ -312,7 +312,7 @@ class SampleForm(ModelForm):
 class SampleFormEdition(ModelForm):
     class Meta:
         model = Sample
-        fields = ['data']
+        fields = ['data', 'storage']
         redirect_url = 'core:samples'
         
     data_attrs= {
@@ -320,18 +320,23 @@ class SampleFormEdition(ModelForm):
     }
     data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ', required= False)
 
+    storage_attrs= {
+        'class': 'field',
+    }
+    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén', label_suffix=' ')
+
 
 ### BLOOD ###
 class BloodForm(ModelForm):
     class Meta:
         model = Blood
-        fields = ['BloodGroup', 'capacity', 'date', 'tests', 'reserved', 'process']
+        fields = ['bloodGroup', 'capacity', 'date', 'tests', 'reserved', 'process']
         redirect_url = 'core:blood'
         
-    BloodGroup_attrs= {
+    bloodGroup_attrs= {
         'class': 'field',
     }
-    BloodGroup = forms.ChoiceField(choices= bloodGroups.items(), widget=forms.Select(attrs=BloodGroup_attrs), label='Grupo sanguíneo', label_suffix=' ')
+    bloodGroup = forms.ChoiceField(choices= bloodGroups.items(), widget=forms.Select(attrs=bloodGroup_attrs), label='Grupo sanguíneo', label_suffix=' ')
 
     capacity_attrs= {
         'class': 'field',
@@ -345,16 +350,43 @@ class BloodForm(ModelForm):
 
     tests_attrs= {
         'class': 'field',
+        'min_value': 0,
     }
-    tests = forms.IntegerField(widget=forms.NumberInput(attrs=tests_attrs), label='Número de pruebas', label_suffix=' ')
+    tests = forms.IntegerField(widget=forms.NumberInput(attrs=tests_attrs), label='Número de pruebas', label_suffix=' ', initial=0)
 
     reserved_attrs= {
         'class': 'field',
     }
-    reserved = forms.BooleanField(widget=forms.CheckboxInput(attrs=reserved_attrs), label='Reservada', label_suffix=' ', required=False)
+    reserved = forms.ModelChoiceField(queryset=Patient.objects.all(), widget=forms.Select(attrs=reserved_attrs), label='Reserva',
+                                      label_suffix=' ', required=False)
 
     process_attrs= {
         'class': 'field',
     }
     process = forms.ChoiceField(choices=processTypes.items(), widget=forms.Select(attrs=process_attrs), label='Tipo de procesamiento', label_suffix=' ')
+
+
+class BloodFormEdition(ModelForm):
+    class Meta:
+        model = Blood
+        fields = ['tests', 'reserved', 'storage']
+        redirect_url = 'core:blood'
+        
+    tests_attrs= {
+        'class': 'field',
+        'min_value': 0,
+    }
+    tests = forms.IntegerField(widget=forms.NumberInput(attrs=tests_attrs), label='Número de pruebas', label_suffix=' ', initial=0)
+
+    reserved_attrs= {
+        'class': 'field',
+    }
+    reserved = forms.ModelChoiceField(queryset=Patient.objects.all(), widget=forms.Select(attrs=reserved_attrs), label='Reserva',
+                                      label_suffix=' ', required=False)
+
+    storage_attrs= {
+        'class': 'field',
+    }
+    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén',
+                                      label_suffix=' ', required=False)
 

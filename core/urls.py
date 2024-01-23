@@ -100,8 +100,25 @@ storagedLabMaterial_patterns = [
 sample_patterns = [
     path('', views.samples, name='samples'),
     path('crear/<int:storage>', views.createSample, name='createSample'),
+    path('codigo/<int:pk>', views.sampleID, name='sampleID'),
     path('editar/<int:pk>', views.editSample, name='editSample'),
     path('borrar/<int:pk>', views.deleteSample, name='deleteSample'),
+]
+
+### BLOOD ###
+blood_patterns = [
+    path('', views.blood, name='blood'),
+    path('crear/<int:storage>', views.createBlood, name='createBlood'),
+    path('codigo/<int:pk>', views.bloodID, name='bloodID'),
+    path('editar/<int:pk>', views.editBlood, name='editBlood'),
+    path('borrar/<int:pk>', views.deleteBlood, name='deleteBlood'),
+]
+
+### BACKUPS ###
+backups_patterns = [
+    path('', views.backups, name='backups'),
+    path('crear_copia/', views.createBackup, name='createBackup'),
+    path('restaurar/', views.restoreBackup, name='restoreBackup'),
 ]
 
 ### URL PATTERNS ###
@@ -128,12 +145,13 @@ urlpatterns = [
     path('materiales/', include(labMaterial_patterns)),
     path('laboratorio/', include(storagedLabMaterial_patterns)),
     path('muestras/', include(sample_patterns)),
-
+    path('sangre/', include(blood_patterns)),
     # login / logout
     #path('login/', views.userLogin, name='userLogin'),
     path('accounts/login/', LoginView.as_view(), name='login'),
     path('logout/', views.userLogout, name='userLogout'),
-
+    # backups
+    path('copias_de_seguridad/', include(backups_patterns)),
     # backend functions
     path('filter/<int:pk_service>/<int:floor>', views.filter, name='filter'),
     path('filterByGroup/<int:group>', views.filterByGroup, name='filterByGroup'),
@@ -143,5 +161,6 @@ urlpatterns = [
     path('viewStoragedDrug/<int:pk>', views.viewStoragedDrug, name='viewStoragedDrug'),
     path('viewStoragedLabMaterial/<int:pk>', views.viewStoragedLabMaterial, name='viewStoragedLabMaterial'),
     path('viewSample/<int:pk>', views.viewSample, name='viewSample'),
-
+    path('viewBlood/<int:pk>', views.viewBlood, name='viewBlood'),
+    path('getAllBlood/', views.getAllBlood, name='getAllBlood'),
 ]

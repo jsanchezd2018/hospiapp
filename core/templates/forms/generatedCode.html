@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>Código autogenerado</title>
+</head>
+<body>
+    <h1> Código autogenerado</h1>
+    <h2 class="deletion_message">Se ha añadido la {{ object_type }}<br>El código es: {{ pk }}<br>Se recomienda anotarlo en la {{ object_type_rec }}</h2>
+
+    <div class="deletion_form"><a href="{% url back_url %}" class="central_button">Continuar</a></div>
+
+</body>
+{% endblock %}

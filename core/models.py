@@ -17,6 +17,10 @@ def genericNoneVerbose(potencialNone):
         return potencialNone
     else:
         return 'Sin asignar'
+    
+def showDate(date):
+    date = str(date)
+    return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]
 
 
 ### PHYSICAL PLACES ###
@@ -96,7 +100,7 @@ class StoragedDrug(models.Model):
         return genericNoneVerbose(self.storage)
     @property
     def verbose_expirationDate(self):
-        return genericNoneVerbose(self.expirationDate)
+        return genericNoneVerbose(showDate(self.expirationDate))
 
 
 ### PEOPLE ###
@@ -206,10 +210,6 @@ class StoragedLabMaterial(models.Model):
     class Meta:
         models.UniqueConstraint(fields=['labMaterial', 'storage'], name='no_multiplicity')
 
-def showDate(date):
-    date = str(date)
-    return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]
-
 class Sample(models.Model):
     sampleType = models.CharField(max_length=1)
     storage = models.ForeignKey(LabStorage, on_delete=models.CASCADE)
@@ -242,7 +242,7 @@ bloodGroups = {
             }
 
 processTypes = {
-            '1': 'Con glóbulos',
+            '1': 'Con glóbulos rojos',
             '2': 'Centrifugado (plaquetas)',
             '3': 'Plasma',
 }
@@ -260,10 +260,23 @@ class Blood(models.Model):
     tests = models.IntegerField()
     reserved = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True)
     process = models.CharField(max_length=1)
+    storage = models.ForeignKey(LabStorage, on_delete=models.CASCADE)
     
     def __str__(self) -> str:
-        return self.pk
+        return str(self.pk)
     
     @property
     def expirationDate(self):
         return self.date + timedelta(days=processDurations[self.process])
+    @property
+    def verbose_patient(self):
+        if self.reserved:
+            return self.reserved.name
+        else:
+            return 'Sin reservar'
+    @property
+    def verbose_type(self):
+        return bloodGroups[self.bloodGroup]
+    @property
+    def verbose_process(self):
+        return processTypes[self.process]

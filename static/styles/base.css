@@ -1,3 +1,5 @@
+/* General */
+
 h1, h2, h3 {
     background-color: #286090;
     color: white;
@@ -8,7 +10,7 @@ table {
 }
 
 tr th {
-    background-color: #cc6603;
+    background-color: #05744c;
 }
 
 tr {
@@ -16,11 +18,11 @@ tr {
 }
 
 tr:nth-child(odd) {
-    background-color: #FF9969;
+    background-color: #3ed44e;
 }
 
 tr:nth-child(even) {
-    background-color: #FFD1B6;
+    background-color: #83c88a;
 }
 
 input, select {
@@ -45,6 +47,12 @@ button, a {
     font-size: 14px;
 }
 
+/* Secondary forms specific elements (not only, but mostly deletions)*/
+
+.deletion_table {
+    margin: auto;
+}
+
 .deletion_message {
     background-color: #3499ff;
     width: 100%;
@@ -55,4 +63,70 @@ button, a {
     display: inline-block;
     width: 100%;
     text-align: center;
+}
+
+.central_button {
+    margin-top: 5px;
+    width: 15%;
+}
+
+/* Menu */
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown a {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 0;
+    background-color: #3a9ab9;
+    font-weight: bold;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+.dropdown h3 {
+    margin: 0
+}
+
+.content {
+    display: none;
+    position: absolute;
+    z-index: 1;
+}
+
+.content a {
+    color: white;
+    padding: 12px 16px;
+    display: block;
+    border-radius: 0px;
+}
+
+.dropdown:hover .content {
+    display: block;
+}
+
+nav a {
+    border-radius: 0px;
+    border: solid;
+    border-width: 2px;
+    border-color: #83c88a;
+}
+
+.dropdown a {
+    border-color: #05744c;
+}
+
+.content a {
+    border: none;
+}
+
+.logout {
+    position: fixed;
+    right: 8px;
+    border: none;
+    background-color: #b84949;
 }

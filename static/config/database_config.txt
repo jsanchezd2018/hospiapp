@@ -1,0 +1,5 @@
+root
+password
+asclepius
+C:\Users\jorge\TFG\hospiapp\static\backups
+C:\Program Files\MySQL\MySQL Server 8.0\bin

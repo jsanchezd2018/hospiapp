@@ -4,43 +4,44 @@
 <head>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
+    <script src="{% static 'scripts/dateWriter.js' %}" defer></script>
     <title>{{ title }}</title>
 </head>
 <body>
     <h1>{{ title }}</h1>
 
-    <h2>Datos de la muestra</h2>
+    <h2>Datos de la bolsa</h2>
     <table>
         <tr>
-            <td>Tipo de muestra</td>
-            <td>{{ sampleType }}</td>
+            <td>Grupo sanguíneo</td>
+            <td>{{ verbose_type }}</td>
         </tr>
         <tr>
-            <td>Almacén</td>
-            <td>{{ storage }}</td>
-        </tr>
-        <tr>
-            <td>Paciente</td>
-            <td>{{ patient }}</td>
-        </tr>
-        <tr>
-            <td>Fecha de muestra</td>
+            <td>Fecha</td>
             <td>{{ date }}</td>
+        </tr>
+        <tr>
+            <td>Contenido</td>
+            <td>{{ verbose_process }}</td>
+        </tr>
+        <tr>
+            <td>Volumen (mL)</td>
+            <td>{{ capacity }}</td>
         </tr>
     </table>
 
     <form method="post" action="{% url function_url pk %}">
         {% csrf_token %}
-        <table>
+        <table><tbody>
         {% for field in form %}
         <tr><td>
-        {{ field.label_tag }}
+        <b>{{ field.label_tag }}</b>
         </td><td>
         {{ field }}
         {{ field.errors }}
         </td></tr>
         {% endfor %}
-        </table>
+        </tbody></table>
         <button type="submit">Guardar</button>
         <a href="{% url back_url %}">Cancelar</a>
     </form>

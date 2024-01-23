@@ -1,3 +1,4 @@
 core/__pycache__/
 core/migrations/
 hospiapp/__pycache__/
+static/backups/

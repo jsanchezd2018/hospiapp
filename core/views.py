@@ -1,23 +1,111 @@
+# JSON
 from django.http import JsonResponse
+# Funciones basicas
 from django.shortcuts import redirect, render, get_object_or_404
-from django.core.paginator import Paginator, EmptyPage
-from django.db.models import Q
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
+# Utilidades paginas
+from django.core.paginator import Paginator, EmptyPage
+from django.db.models import Q
+from django.contrib.auth.forms import AuthenticationForm
+# Otros archivos
 from core import urls
-
-
 from .forms import *
+# Copias de seguridad
+import os, subprocess, platform
+from hospiapp.settings import BASE_DIR
+from datetime import datetime
 
+
+### BASICS ###
 @csrf_protect
 @login_required
 def index(request):
     return render(request, 'index.html')
 
+
+### BACKUPS ###
+@csrf_protect
+@login_required
+def backups(request):
+    try:
+        date = showDate(os.path.basename(os.listdir(os.path.join(BASE_DIR, 'static\\backups'))[0])[7:17])
+    except:
+        date = 'Ninguna'
+    return render(request, 'backups/backups.html', context={'date': date})
+
+@csrf_protect
+@login_required
+def createBackup(request):
+    # configuration
+    user =     ''
+    password = ''
+    database = ''
+    location = ''
+    date = datetime.now()
+    
+    with open(os.path.join(BASE_DIR, 'static\\config\\database_config.txt')) as config_file:
+        lines = config_file.readlines()
+        user =     lines[0].replace('\n', '')
+        password = lines[1].replace('\n', '')
+        database = lines[2].replace('\n', '')
+        location = lines[3].replace('\n', '')
+        sql_dump = lines[4].replace('\n', '')
+    file_name = os.path.join(location, 'backup_'+ str(date.year).zfill(4) + '-' + str(date.month).zfill(2) + '-' + str(date.day).zfill(2) + '.sql')
+
+    # sqldump (depends of OS)
+    if platform.system() == 'Windows': # Windows: Goes to directory and executes command
+        wd = os.getcwd()
+        os.chdir(sql_dump)
+        subprocess.Popen(f'mysqldump -u{user} -p{password} --databases {database} > {file_name}', shell=True).wait()
+        os.chdir(wd)
+    elif platform.system() == 'Linux': # Linux (not Mac): Uses commnand, then moves the file
+        subprocess.Popen(f'mysqldump -u{user} -p{password} --databases {database} > {file_name}', shell=True).wait()
+        subprocess.Popen(f'mv {file_name}.sql {location}', shell=True).wait()
+    else: # No others supported by now
+        print('Es un sistema operativo no compatible con este software')
+
+    # remove other files
+    for file in os.listdir(location):
+        if os.path.join(location, file) != file_name: os.remove(os.path.join(location, file))
+
+    # Page
+    return render(request, 'backups/finishedProcess.html', context={'message': 'Se ha creado la copia de seguridad'})
+
+
+@csrf_protect
+@login_required
+def restoreBackup(request):
+    # configuration
+    user =     ''
+    password = ''
+    database = ''
+    location = ''
+    
+    with open(os.path.join(BASE_DIR, 'static\\config\\database_config.txt')) as config_file:
+        lines = config_file.readlines()
+        user =     lines[0].replace('\n', '')
+        password = lines[1].replace('\n', '')
+        database = lines[2].replace('\n', '')
+        location = lines[3].replace('\n', '')
+        sql_dump = lines[4].replace('\n', '')
+    file_name = os.path.join(location, os.listdir(location)[0])
+
+    # sqldump
+    wd = os.getcwd()
+    os.chdir(sql_dump)
+    subprocess.Popen(f'mysql -u{user} -p{password} {database} < {file_name}', shell=True).wait()
+
+    os.chdir(wd)
+
+    # Page
+    return render(request, 'backups/finishedProcess.html', context={'message': 'Se ha restaurado la base de datos'})
+
+
 ### GENERIC CONSTANTS ###
 N = 10
+
 
 ### GENERIC FUNCTIONS ###
 @csrf_protect
@@ -38,6 +126,7 @@ def createGeneric(request, klass, function_url, title):
         'function_url': function_url
     }
     return render(request, 'forms/genericForm.html', context=ctx)
+
 
 @csrf_protect
 @login_required
@@ -60,6 +149,7 @@ def editGeneric(request, klass, pk, function_url, title):
     }
     return render(request, 'forms/genericForm.html', context=ctx)
 
+
 @csrf_protect
 @login_required
 def deleteGeneric(request, klass, pk, function_url, title):
@@ -76,6 +166,7 @@ def deleteGeneric(request, klass, pk, function_url, title):
         'pk': pk,
     }
     return render(request, 'forms/genericDeletion.html', context=ctx)
+
 
 ### AUXILIAR FUNCTIONS ###
 def isValidDate(date):
@@ -100,14 +191,14 @@ def dateFormat(date):
 def isValidDateTime(date):
     try:
         if date != '':
-            return  (   len(date) == 10 and
+            return  (   len(date) == 16 and
                         date[0].isdigit() and date[1].isdigit() and date[2] == '/' and
                         date[3].isdigit() and date[4].isdigit() and date[5] == '/' and
                         date[6].isdigit() and date[7].isdigit() and date[8].isdigit() and date[9].isdigit() and
-                        int(date[0]+date[1]) in range(1,31) and int(date[3]+date[4]) in range(1,12) and
+                        int(date[0]+date[1]) in range(1,32) and int(date[3]+date[4]) in range(1,13) and
                         date[10] == ' ' and date[11].isdigit() and date[12].isdigit() and
-                        date[13] == ':' and date[14].isdigit() and date[15] == ' ' and
-                        int(date[11]+date[12]) in range(0,23) and int(date[14]+date[15]) in range(0,59)
+                        date[13] == ':' and date[14].isdigit() and date[15].isdigit() and
+                        int(date[11]+date[12]) in range(0,24) and int(date[14]+date[15]) in range(0,60)
                     )
         return False
     except:
@@ -117,7 +208,7 @@ def dateTimeFormat(date):
     try:
         return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]+' '+date[11]+date[12]+':'+date[14]+date[15]
     except:
-        return 'uwu'
+        return ''
     
 def showDate(date):
     date = str(date)
@@ -126,7 +217,6 @@ def showDate(date):
 def showDateTime(date):
     date = str(date)
     return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]+' '+date[11]+date[12]+':'+date[14]+date[15]
-
 
 
 ### FIRST PART ###
@@ -891,7 +981,7 @@ def createSample(request, storage):
             form = form.save(commit=False)
             form.storage = get_object_or_404(LabStorage, pk=storage)
             form.save()
-            return redirect('core:samples')
+            return redirect('core:sampleID', form.pk)
     else:
         form = SampleForm()
     ctx = {
@@ -904,6 +994,17 @@ def createSample(request, storage):
     }
     return render(request, 'forms/sampleForm.html', context=ctx)
 
+
+@csrf_protect
+@login_required
+def sampleID(request, pk):
+    ctx = {
+        'pk': pk,
+        'object_type': 'muestra',
+        'object_type_rec': 'muestra',
+        'back_url': 'core:samples',
+    }
+    return render(request, 'forms/generatedCode.html', context=ctx)
 
 @csrf_protect
 @login_required
@@ -929,6 +1030,8 @@ def editSample(request, pk):
         'date': object.date,
     }
     return render(request, 'forms/sampleFormEdition.html', context=ctx)
+
+
 @csrf_protect
 @login_required
 def deleteSample(request, pk):
@@ -976,6 +1079,130 @@ def samples(request):
         'backendURL': urls.backendURL,
     }
     return render(request, 'functionalities/samples.html', context=ctx)
+
+
+### BLOOD ###
+@csrf_protect
+@login_required
+def createBlood(request, storage):
+    if request.method == 'POST':
+        form = BloodForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            form.storage = get_object_or_404(LabStorage, pk=storage)
+            form.save()
+            return redirect('core:bloodID', form.pk)
+    else:
+        form = BloodForm()
+    ctx = {
+        'form': form,
+        'title': 'Añadir bolsa de sangre a ' + get_object_or_404(LabStorage, pk=storage).name,
+        'back_url': 'core:blood',
+        'function_url': 'core:createBlood',
+        'backendURL': urls.backendURL,
+        'storage': storage,
+    }
+    return render(request, 'forms/bloodForm.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+def bloodID(request, pk):
+    ctx = {
+        'pk': pk,
+        'object_type': 'bolsa de sangre',
+        'object_type_rec': 'bolsa',
+        'back_url': 'core:blood',
+    }
+    return render(request, 'forms/generatedCode.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+def editBlood(request, pk):
+    object = get_object_or_404(Blood, pk=pk)
+    if request.method == 'POST':
+        form = BloodFormEdition(request.POST, instance=object)
+        if form.is_valid():
+            form.save()
+            return redirect(BloodFormEdition.Meta.redirect_url)
+    else:
+        form = BloodFormEdition(instance=object)
+    
+    ctx = {
+        'form': form,
+        'title': 'Reservar / Trasladar / Añadir pruebas a bolsa' + str(pk),
+        'back_url': BloodFormEdition.Meta.redirect_url,
+        'function_url': 'core:editBlood',
+        'pk': pk,
+        'verbose_type': bloodGroups[object.bloodGroup],
+        'date': object.date,
+        'verbose_process': object.verbose_process,
+        'capacity': object.capacity,
+    }
+    return render(request, 'forms/bloodFormEdition.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+def deleteBlood(request, pk):
+    object = get_object_or_404(Blood, pk=pk)
+    if request.method == 'POST':
+        object.delete()
+        return redirect('core:blood')
+
+    ctx = {
+        'object': object,
+        'pk': pk,
+    }
+    return render(request, 'forms/bloodDeletion.html', context=ctx)
+
+@csrf_protect
+@login_required
+def blood(request):
+    # Queries
+    query_type = request.GET.get('query_type', '0')
+    query_patient = request.GET.get('query_patient', '')
+    query_date_1 = request.GET.get('query_date_1', '')
+    query_date_2 = request.GET.get('query_date_2', '')
+    query_process = request.GET.get('query_process', '0')
+    query_storage = request.GET.get('query_storage', '')
+    bloodBags = Blood.objects.all().order_by('-date')
+    allBloodBags = bloodBags
+    if query_storage != '':
+        bloodBags = bloodBags.filter( storage=query_storage )
+        query_storage = int(query_storage)
+    if query_type != '0':
+        bloodBags = bloodBags.filter(bloodGroup=query_type)
+    if query_patient != '':
+        bloodBags = bloodBags.filter(Q(reserved__name__icontains=query_patient) | (Q(reserved__historyNumber__icontains=query_patient)))
+    if query_process != '0':
+        bloodBags = bloodBags.filter(process=query_process)
+    if isValidDateTime(query_date_1) and isValidDateTime(query_date_2):
+        bloodBags = bloodBags.filter(date__range=[dateTimeFormat(query_date_1), dateTimeFormat(query_date_2)])
+    # Paginator
+    paginator = Paginator(bloodBags, N)
+    page = request.GET.get('page', 1)
+    try:
+        bloodBags = paginator.page(page)
+    except EmptyPage:
+        bloodBags = paginator.page(paginator.num_pages)
+    # Render
+    ctx = {
+        'allBloodBags': allBloodBags,
+        'blood': bloodBags,
+        'query_type': query_type,
+        'query_patient': query_patient,
+        'query_date_1': query_date_1,
+        'query_date_2': query_date_2,
+        'query_storage': query_storage,
+        'query_process': query_process,
+        'types': bloodGroups.items(),
+        'processes': processTypes.items(),
+        'storages': LabStorage.objects.all(),
+        'backendURL': urls.backendURL,
+    }
+    return render(request, 'functionalities/blood.html', context=ctx)
 
 
 ### BACKEND FUNCTIONS ###
@@ -1122,6 +1349,59 @@ def viewSample(request, pk):
                                 'BackendSample_storage': sample.storage.name,
                                 'BackendSample_expirationDate': showDate(sample.expirationDate),
                                 'BackendSample_data': sample.data,
+                            })
+    else:
+        return JsonResponse({})
+    
+@csrf_protect
+@login_required
+def viewBlood(request, pk):
+    if request.method == 'GET':
+
+        blood = get_object_or_404(Blood, pk=pk)
+        
+        return JsonResponse({
+                                'BackendBlood_pk': blood.pk,
+                                'BackendBlood_patient': blood.verbose_patient,
+                                'BackendBlood_type': bloodGroups[blood.bloodGroup],
+                                'BackendBlood_date': showDateTime(blood.date),
+                                'BackendBlood_storage': blood.storage.name,
+                                'BackendBlood_expirationDate': showDate(blood.expirationDate),
+                                'BackendBlood_capacity': blood.capacity,
+                                'BackendBlood_process': processTypes[blood.process],
+                            })
+    else:
+        return JsonResponse({})
+    
+@csrf_protect
+@login_required
+def getAllBlood(request):
+    if request.method == 'GET':
+
+        view_Ap, view_Am, view_Bp, view_Bm, view_ABp, view_ABm, view_Op, view_Om = 0, 0, 0, 0, 0, 0, 0, 0
+        blood = Blood.objects.filter(reserved__isnull=True).order_by('-date')
+
+        for bag in blood:
+            if bag.bloodGroup == '1':
+                view_Ap += bag.capacity
+            elif bag.bloodGroup == '2':
+                view_Am += bag.capacity
+            elif bag.bloodGroup == '3':
+                view_Bp += bag.capacity
+            elif bag.bloodGroup == '4':
+                view_Bm += bag.capacity
+            elif bag.bloodGroup == '5':
+                view_ABp += bag.capacity
+            elif bag.bloodGroup == '6':
+                view_ABm += bag.capacity
+            elif bag.bloodGroup == '7':
+                view_Op += bag.capacity
+            elif bag.bloodGroup == '8':
+                view_Om += bag.capacity
+
+        return JsonResponse({
+                                'view_Ap': view_Ap/1000, 'view_Am': view_Am/1000, 'view_Bp': view_Bp/1000, 'view_Bm': view_Bm/1000,
+                                'view_ABp': view_ABp/1000, 'view_ABm': view_ABm/1000, 'view_Op': view_Op/1000, 'view_Om': view_Om/1000,
                             })
     else:
         return JsonResponse({})

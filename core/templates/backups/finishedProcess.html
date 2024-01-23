@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>Copias de seguridad</title>
+</head>
+<body>
+    <h1> Copias de seguridad</h1>
+    <h2 class="deletion_message">{{ message }}</h2>
+    <div class="deletion_form"><a href="{% url 'core:backups' %}" class="central_button">Continuar</a></div>
+
+</body>
+{% endblock %}

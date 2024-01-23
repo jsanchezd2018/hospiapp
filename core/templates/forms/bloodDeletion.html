@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <h2 class="deletion_message">Estás a punto de consumir la bolsa {{ object }}</h2>
+    <table class="deletion_table">
+        <tr>
+            <td>ID</td>
+            <td>{{object.pk}}</td>
+        </tr>
+        <tr>
+            <td>Grupo sanguíneo</td>
+            <td>{{object.verbose_type}}</td>
+        </tr>
+        <tr>
+            <td>Reserva</td>
+            <td>{{object.verbose_patient}}</td>
+        </tr>
+        <tr>
+            <td>Fecha</td>
+            <td>{{object.date}}</td>
+        </tr>
+        <tr>
+            <td>Contenido</td>
+            <td>{{object.verbose_process}}</td>
+        </tr>
+        <tr>
+            <td>Volumen</td>
+            <td>{{object.capacity}}</td>
+        </tr>
+        <tr>
+            <td>Pruebas</td>
+            <td>{{object.tests}}</td>
+        </tr>
+        <tr>
+            <td>Almacén</td>
+            <td>{{object.storage}}</td>
+        </tr>
+    </table>
+
+    <form action="{% url 'core:deleteBlood' pk %}" method="post" class="deletion_form">
+        {% csrf_token %}
+        <button type="submit">Consumir</button>
+        <a href="{% url 'core:blood' %}">Cancelar</a>
+    </form>
+
+</body>
+{% endblock %}

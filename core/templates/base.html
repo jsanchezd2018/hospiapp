@@ -7,7 +7,39 @@
         <meta content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <p>Aquí irá el menú</p>
+        <header>
+            <nav>
+                <a href="{% url "core:patientsManagement" %}" class="menu_button">Pacientes</a>
+                <a href="{% url "core:storagedDrugs" %}" class="menu_button">Farmacia</a>
+                <a href="{% url "core:storagedLabMaterials" %}" class="menu_button">Laboratorio</a>
+                <a href="{% url "core:samples" %}" class="menu_button">Muestras</a>
+                <a href="{% url "core:blood" %}" class="menu_button">Sangre</a>
+                <div class="dropdown">
+                    <a class="menu_button">Maestros de enfermería</a>
+                    <div class="content">
+                        <h3>Medicamentos</h3>
+                        <a href="{% url "core:drugs" %}">Medicamentos</a>
+                        <a href="{% url "core:drugTypes" %}">Grupos</a>
+                        <h3>Lugares físicos</h3>
+                        <a href="{% url "core:storages" %}">Almacenes de medicamentos</a>
+                        <a href="{% url "core:services" %}">Servicios</a>
+                        <a href="{% url "core:beds" %}">Camas</a>
+                        <h3>Personas</h3>
+                        <a href="{% url "core:doctors" %}">Médicos</a>
+                        <a href="{% url "core:patients" %}">Pacientes</a>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <a class="menu_button">Maestros de laboratorio</a>
+                    <div class="content">
+                        <a href="{% url "core:labStorages" %}">Almacenes de laboratorio</a>
+                        <a href="{% url "core:labMaterials" %}">Materiales de laboratorio</a>
+                    </div>
+                </div>
+                <a href="{% url 'core:backups' %}" class="menu_button">Copias</a>
+                <a href="{% url 'core:userLogout' %}" class="logout">Cerrar sesión</a>
+            </nav>
+        </header>
         {% block content %}
         {% endblock %}
     </body>

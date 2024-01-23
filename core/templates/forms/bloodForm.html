@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/functionality.css' %}">
+    <script src="{% static 'scripts/dateWriter.js' %}" defer></script>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+
+    <form method="post" action="{% url function_url storage %}">
+        {% csrf_token %}
+        <table><tbody>
+        {% for field in form %}
+        <tr><td>
+        <b>{{ field.label_tag }}</b>
+        </td><td>
+        {{ field }}
+        {{ field.errors }}
+        </td></tr>
+        {% endfor %}
+        </tbody></table>
+        <button type="submit">Guardar</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
+
+</body>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>Copias de seguridad</title>
+</head>
+<body>
+    <h1> Copias de seguridad</h1>
+    <h2 class="deletion_message" id='msg'>Si creas una copia de seguridad nueva, la anterior se sobreescribirá<br>
+    Si restauras, se perderá la información que no esté en la copia<br>
+    Asegúrate antes de realizar ninguna operación<br><br>
+    Última copia de seguridad: {{ date }}</h2>
+
+    <div class="deletion_form"><a href="{% url 'core:createBackup' %}" class="central_button" onclick='bf1()' id='bb1'>Crear copia de seguridad</a></div>
+    <div class="deletion_form"><a href="{% url 'core:restoreBackup' %}" class="central_button" onclick='bf2()' id='bb2'>Restaurar base de datos</a></div>
+
+    <h2 class="deletion_message" id='bm1' hidden>Se está creando la copia de seguridad<br>Espera, por favor</h2>
+    <h2 class="deletion_message" id='bm2' hidden>Se está restaurando la base de datos<br>Espera, por favor</h2>
+
+    <script>
+
+        function bf1() {
+            document.getElementById('msg').style.visibility = 'hidden';
+            document.getElementById('bb1').style.visibility = 'hidden';
+            document.getElementById('bb2').style.visibility = 'hidden';
+            document.getElementById('bm1').removeAttribute('hidden');
+        }
+
+        function bf2() {
+            document.getElementById('msg').style.visibility = 'hidden';
+            document.getElementById('bb1').style.visibility = 'hidden';
+            document.getElementById('bb2').style.visibility = 'hidden';
+            document.getElementById('bm2').removeAttribute('hidden');
+        }
+
+    </script>
+
+</body>
+{% endblock %}
