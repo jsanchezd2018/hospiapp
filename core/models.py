@@ -6,42 +6,46 @@ HISTORY_NUMBER_LENGTH = 14
 NDC_LENGTH = 7
 
 ### AUXILIAR FUNCTIONS ###
-def genericBooleanVerbose(bool):
+def genericBooleanVerbose(bool): # returns boolean values to ['Sí', 'No'] format
     if bool:
         return 'Sí'
     else:
         return 'No'
 
-def genericNoneVerbose(potencialNone):
+def genericNoneVerbose(potencialNone): # returns the field's value or verbosed None ('Sin asignar')
     if potencialNone:
         return potencialNone
     else:
         return 'Sin asignar'
     
-def showDate(date):
+def showDate(date): # formats dates to proper print
     date = str(date)
     return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]
 
 
 ### PHYSICAL PLACES ###
+# Master model
 class Storage(models.Model):
     name = models.CharField(max_length=20, unique=True)
 
     def __str__(self) -> str:
         return self.name
-    
+
+# Master model
 class LabStorage(models.Model):
     name = models.CharField(max_length=20, unique=True)
 
     def __str__(self) -> str:
         return self.name
 
+# Master model
 class Service(models.Model):
     name = models.CharField(max_length=20, unique=True)
 
     def __str__(self) -> str:
         return self.name
 
+# Master model
 class Bed(models.Model):
     name = models.CharField(max_length=10, unique=True)
     floor = models.IntegerField()
@@ -56,12 +60,15 @@ class Bed(models.Model):
 
 
 ### DRUGS ###
+    
+# Master model
 class DrugType(models.Model):
     name = models.CharField(max_length=20, unique=True)
 
     def __str__(self) -> str:
         return self.name
 
+# Master model
 class Drug(models.Model):
     name = models.CharField(max_length=30, unique=True)
     NDC = models.CharField(max_length=NDC_LENGTH, unique=True, null=True, blank=True)
@@ -83,6 +90,7 @@ class Drug(models.Model):
             result += drug.quantity
         return result
 
+# Functionality model
 class StoragedDrug(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE, null=True, blank=True)
@@ -104,19 +112,15 @@ class StoragedDrug(models.Model):
 
 
 ### PEOPLE ###
+    
+# Master model
 class Doctor(models.Model):
     name = models.CharField(max_length=30, unique=True)
 
     def __str__(self) -> str:
         return self.name
 
-class User(models.Model):
-    username = models.CharField(max_length=20, unique=True)
-    password = models.CharField(max_length=20)
-
-    def __str__(self) -> str:
-        return self.username
-
+# Master model
 class Patient(models.Model):
     name = models.CharField(max_length=30)
     historyNumber = models.CharField(max_length=HISTORY_NUMBER_LENGTH, null=True, blank=True)
@@ -147,7 +151,17 @@ class Patient(models.Model):
     @property
     def verbose_admissionDate(self):
         return genericNoneVerbose(self.admissionDate)
-    
+
+
+### USERS ###
+# 'User' model is django's default
+
+# roles estructure
+roles = {
+            '1': 'Enfermería',
+            '2': 'Laboratorio',
+            '3': 'Administración',
+    }
     
 
 ### LAB ###
@@ -168,6 +182,7 @@ sampleTypes = {
                 '6': 'Otros',
             }
 
+# days for expiration (acording to sampleTypes)
 sampleDurations = {
                     '1': 7,
                     '2': 14,
@@ -176,7 +191,8 @@ sampleDurations = {
                     '5': 1000,
                     '6': 1000,
 }
-
+    
+# Master model
 class LabMaterial(models.Model):
     name = models.CharField(max_length=20, unique=True)
     materialType = models.CharField(max_length=1)
@@ -195,6 +211,7 @@ class LabMaterial(models.Model):
             result += labMaterial.quantity
         return result
 
+# Functionality model
 class StoragedLabMaterial(models.Model):
     labMaterial = models.ForeignKey(LabMaterial, on_delete=models.CASCADE)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
@@ -210,6 +227,7 @@ class StoragedLabMaterial(models.Model):
     class Meta:
         models.UniqueConstraint(fields=['labMaterial', 'storage'], name='no_multiplicity')
 
+# Functionality model
 class Sample(models.Model):
     sampleType = models.CharField(max_length=1)
     storage = models.ForeignKey(LabStorage, on_delete=models.CASCADE)
@@ -229,7 +247,6 @@ class Sample(models.Model):
 
 
 ### BLOOD ###
-
 bloodGroups = {
                 '1': 'A+',
                 '2': 'A-',
@@ -247,12 +264,14 @@ processTypes = {
             '3': 'Plasma',
 }
 
+# days to expiration (acording to processTypes)
 processDurations = {
                     '1': 42,
                     '2': 7,
                     '3': 1000,
 }
 
+# Functionality model
 class Blood(models.Model):
     bloodGroup = models.CharField(max_length=1)
     capacity = models.IntegerField()
@@ -280,3 +299,4 @@ class Blood(models.Model):
     @property
     def verbose_process(self):
         return processTypes[self.process]
+

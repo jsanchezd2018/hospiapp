@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class='deletion_message'>No tienes permiso para acceder a esta operación</h1>
+
+<div class="deletion_form"><a href="{% url 'core:index' %}" class="central_button">Aceptar</a></div>
+
+
+{% endblock %}

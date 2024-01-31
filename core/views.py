@@ -3,7 +3,9 @@ from django.http import JsonResponse
 # Funciones basicas
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth.decorators import login_required
+# Sesiones y permisos
+from django.contrib.auth.models import User, Permission
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth import login, logout
 # Utilidades paginas
 from django.core.paginator import Paginator, EmptyPage
@@ -18,26 +20,38 @@ from hospiapp.settings import BASE_DIR
 from datetime import datetime
 
 
+
 ### BASICS ###
+
 @csrf_protect
 @login_required
-def index(request):
+def index(request): # Index
     return render(request, 'index.html')
 
 
-### BACKUPS ###
 @csrf_protect
 @login_required
-def backups(request):
+def denied(request): # Page shown when user has no pemrission
+    return render(request, 'denied.html')
+
+
+### BACKUPS ###
+
+@csrf_protect
+@login_required
+@user_passes_test(lambda u: u.is_superuser, login_url='core:denied')
+def backups(request): # Menu for backup functions
     try:
         date = showDate(os.path.basename(os.listdir(os.path.join(BASE_DIR, 'static\\backups'))[0])[7:17])
     except:
         date = 'Ninguna'
     return render(request, 'backups/backups.html', context={'date': date})
 
+
 @csrf_protect
 @login_required
-def createBackup(request):
+@user_passes_test(lambda u: u.is_superuser, login_url='core:denied')
+def createBackup(request): # Create new backup file (with SQLDUMP)
     # configuration
     user =     ''
     password = ''
@@ -76,7 +90,8 @@ def createBackup(request):
 
 @csrf_protect
 @login_required
-def restoreBackup(request):
+@user_passes_test(lambda u: u.is_superuser, login_url='core:denied')
+def restoreBackup(request): # restores database from existing backup file
     # configuration
     user =     ''
     password = ''
@@ -108,6 +123,8 @@ N = 10
 
 
 ### GENERIC FUNCTIONS ###
+# add, change and delete functions for models with the same simple common logic 
+
 @csrf_protect
 @login_required
 def createGeneric(request, klass, function_url, title):
@@ -169,6 +186,7 @@ def deleteGeneric(request, klass, pk, function_url, title):
 
 
 ### AUXILIAR FUNCTIONS ###
+
 def isValidDate(date):
     try:
         if date != '':
@@ -182,11 +200,13 @@ def isValidDate(date):
     except:
         return False
 
+
 def dateFormat(date):
     try:
         return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]
     except:
         return ''
+
 
 def isValidDateTime(date):
     try:
@@ -204,19 +224,42 @@ def isValidDateTime(date):
     except:
         return False
 
+
 def dateTimeFormat(date):
     try:
         return date[6]+date[7]+date[8]+date[9]+'-'+date[3]+date[4]+'-'+date[0]+date[1]+' '+date[11]+date[12]+':'+date[14]+date[15]
     except:
         return ''
     
+
 def showDate(date):
     date = str(date)
     return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]
 
+
 def showDateTime(date):
     date = str(date)
     return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]+' '+date[11]+date[12]+':'+date[14]+date[15]
+
+
+### PERMISSIONS ###
+# permission logic is planned so all is needed to change something is to change this lists
+
+permits = {
+    # Nursery
+    '1': [
+        'add_patient', 'change_patient', 'view_patient',
+        'add_storageddrug', 'change_storageddrug', 'delete_storageddrug', 'view_storageddrug',
+        'view_bed', 'view_doctor', 'view_drug', 'view_service', 'view_drug', 'view_storage', 
+    ],
+    # Lab
+    '2': [
+        'add_blood', 'change_blood', 'delete_blood', 'view_blood',
+        'add_sample', 'change_sample', 'delete_sample', 'view_sample',
+        'add_storagedlabmaterial', 'change_storagedlabmaterial', 'delete_storagedlabmaterial', 'view_storagedlabmaterial',
+        'view_labmaterial', 'view_labstorage', 
+    ],
+}
 
 
 ### FIRST PART ###
@@ -224,23 +267,31 @@ def showDateTime(date):
 ### PHYSICAL PLACES ###
 
 ### STORAGES ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_storage', login_url='core:denied')
 def createStorage(request):
     return createGeneric(request, StorageForm, 'core:createStorage', 'Nuevo almacén')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_storage', login_url='core:denied')
 def editStorage(request, pk):
     return editGeneric(request, StorageForm, pk, 'core:editStorage', 'Editar almacén')
 
-@csrf_protect
-@login_required
-def deleteStorage(request, pk):
-    return deleteGeneric(request, StorageForm, pk, 'core:deleteStorage', 'Borrar almacén')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_storage', login_url='core:denied')
+def deleteStorage(request, pk):
+    return deleteGeneric(request, StorageForm, pk, 'core:deleteStorage', 'Borrar almacén')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_storage', login_url='core:denied')
 def storages(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -261,23 +312,31 @@ def storages(request):
 
 
 ### LAB STORAGES ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_labstorage', login_url='core:denied')
 def createLabStorage(request):
     return createGeneric(request, LabStorageForm, 'core:createLabStorage', 'Nuevo almacén')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_labstorage', login_url='core:denied')
 def editLabStorage(request, pk):
     return editGeneric(request, LabStorageForm, pk, 'core:editLabStorage', 'Editar almacén')
 
-@csrf_protect
-@login_required
-def deleteLabStorage(request, pk):
-    return deleteGeneric(request, LabStorageForm, pk, 'core:deleteLabStorage', 'Borrar almacén')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_labstorage', login_url='core:denied')
+def deleteLabStorage(request, pk):
+    return deleteGeneric(request, LabStorageForm, pk, 'core:deleteLabStorage', 'Borrar almacén')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_labstorage', login_url='core:denied')
 def labStorages(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -298,23 +357,31 @@ def labStorages(request):
 
 
 ### SERVICES ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_service', login_url='core:denied')
 def createService(request):
     return createGeneric(request, ServiceForm, 'core:createService', 'Nuevo servicio')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_service', login_url='core:denied')
 def editService(request, pk):
     return editGeneric(request, ServiceForm, pk, 'core:editService', 'Editar servicio')
 
-@csrf_protect
-@login_required
-def deleteService(request, pk):
-    return deleteGeneric(request, ServiceForm, pk, 'core:deleteService', 'Borrar servicio')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_service', login_url='core:denied')
+def deleteService(request, pk):
+    return deleteGeneric(request, ServiceForm, pk, 'core:deleteService', 'Borrar servicio')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_service', login_url='core:denied')
 def services(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -335,23 +402,31 @@ def services(request):
 
 
 ### BEDS ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_bed', login_url='core:denied')
 def createBed(request):
     return createGeneric(request, BedForm, 'core:createBed', 'Nueva cama')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_bed', login_url='core:denied')
 def editBed(request, pk):
     return editGeneric(request, BedForm, pk, 'core:editBed', 'Editar cama')
 
-@csrf_protect
-@login_required
-def deleteBed(request, pk):
-    return deleteGeneric(request, BedForm, pk, 'core:deleteBed', 'Borrar cama')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_bed', login_url='core:denied')
+def deleteBed(request, pk):
+    return deleteGeneric(request, BedForm, pk, 'core:deleteBed', 'Borrar cama')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_bed', login_url='core:denied')
 def beds(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -383,23 +458,31 @@ def beds(request):
 ### DRUGS ###
 
 ### DRUGS ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_drug', login_url='core:denied')
 def createDrug(request):
     return createGeneric(request, DrugForm, 'core:createDrug', 'Nuevo medicamento')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_drug', login_url='core:denied')
 def editDrug(request, pk):
     return editGeneric(request, DrugForm, pk, 'core:editDrug', 'Editar medicamento')
 
-@csrf_protect
-@login_required
-def deleteDrug(request, pk):
-    return deleteGeneric(request, DrugForm, pk, 'core:deleteDrug', 'Borrar medicamento')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_drug', login_url='core:denied')
+def deleteDrug(request, pk):
+    return deleteGeneric(request, DrugForm, pk, 'core:deleteDrug', 'Borrar medicamento')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_drug', login_url='core:denied')
 def drugs(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -425,23 +508,31 @@ def drugs(request):
 
 
 ### DRUG TYPES ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_drugtype', login_url='core:denied')
 def createDrugType(request):
     return createGeneric(request, DrugTypeForm, 'core:createDrugType', 'Nuevo grupo de medicamentos')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_drugtype', login_url='core:denied')
 def editDrugType(request, pk):
     return editGeneric(request, DrugTypeForm, pk, 'core:editDrugType', 'Editar grupo de medicamentos')
 
-@csrf_protect
-@login_required
-def deleteDrugType(request, pk):
-    return deleteGeneric(request, DrugTypeForm, pk, 'core:deleteDrugType', 'Borrar grupo de medicamentos')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_drugtype', login_url='core:denied')
+def deleteDrugType(request, pk):
+    return deleteGeneric(request, DrugTypeForm, pk, 'core:deleteDrugType', 'Borrar grupo de medicamentos')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_drugtype', login_url='core:denied')
 def drugTypes(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -461,30 +552,31 @@ def drugTypes(request):
     return render(request, 'masterViewers/drugTypes.html', context=ctx)
 
 
-### STORAGED DRUGS ###   
+### STORAGED DRUGS ###  
+# this is a functionality and required custom funcions, cannot apply generic ones
+
 @csrf_protect
 @login_required
+@permission_required('core.add_storageddrug', login_url='core:denied')
 def createStoragedDrug(request, storage):
     if request.method == 'POST':
         form = StoragedDrugForm(request.POST)
         if form.is_valid():
-            form = form.save(commit=False)
             actualDrugsInStorage = []
             for drug in StoragedDrug.objects.filter(storage=storage):
-                actualDrugsInStorage += drug.drug
-
+                actualDrugsInStorage += [drug.drug]
+            form = form.save(commit=False)
             if form.drug in actualDrugsInStorage:
-                object = StoragedDrug.objects.filter( Q(drug=form.drug) & Q(storage=storage))
+                object = StoragedDrug.objects.filter( Q(drug=form.drug) & Q(storage=storage))[0]
                 object.quantity += form.quantity
-                form.save()
+                object.storage = get_object_or_404(Storage, pk=storage)
+                object.save()
             else:
                 form.storage = get_object_or_404(Storage, pk=storage)
                 form.save()
-            
         return redirect('core:storagedDrugs')
     else:
         form = StoragedDrugForm()
-    
     ctx = {
         'form': form,
         'title': 'Añadir medicamento al almacén '+get_object_or_404(Storage, pk=storage).name,
@@ -496,8 +588,10 @@ def createStoragedDrug(request, storage):
     }
     return render(request, 'forms/storagedDrugForm.html', context=ctx)
 
+
 @csrf_protect
 @login_required
+@permission_required(('core.change_storageddrug', 'core.delete_storageddrug'), login_url='core:denied')
 def editStoragedDrug(request, pk):
     object = get_object_or_404(StoragedDrug, pk=pk)
     if request.method == 'POST':
@@ -526,6 +620,7 @@ def editStoragedDrug(request, pk):
 
 @csrf_protect
 @login_required
+@permission_required('core.view_storageddrug', login_url='core:denied')
 def storagedDrugs(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -565,6 +660,7 @@ def storagedDrugs(request):
 
 @csrf_protect
 @login_required
+@permission_required(('core.change_storageddrug', 'core.delete_storageddrug'), login_url='core:denied')
 def consumeStoragedDrug(request, pk):
     storagedDrug = get_object_or_404(StoragedDrug, pk=pk)
     if storagedDrug.quantity > 1:
@@ -578,23 +674,31 @@ def consumeStoragedDrug(request, pk):
 ### PEOPLE ###
 
 ### DOCTORS ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_doctor', login_url='core:denied')
 def createDoctor(request):
     return createGeneric(request, DoctorForm, 'core:createDoctor', 'Nuevo médico')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_doctor', login_url='core:denied')
 def editDoctor(request, pk):
     return editGeneric(request, DoctorForm, pk, 'core:editDoctor', 'Editar médico')
 
-@csrf_protect
-@login_required
-def deleteDoctor(request, pk):
-    return deleteGeneric(request, DoctorForm, pk, 'core:deleteDoctor', 'Borrar médico')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_doctor', login_url='core:denied')
+def deleteDoctor(request, pk):
+    return deleteGeneric(request, DoctorForm, pk, 'core:deleteDoctor', 'Borrar médico')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_doctor', login_url='core:denied')
 def doctors(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -613,41 +717,117 @@ def doctors(request):
     }
     return render(request, 'masterViewers/doctors.html', context=ctx)
 
+
 ### USERS ###
-#TODO
-'''@csrf_protect
+# this is a functionality and required custom funcions, cannot apply generic ones
+
+@csrf_protect
 @login_required
+@permission_required('core.add_user', login_url='core:denied')
 def createUser(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect('core:setRole', user.pk )
+    else:
+        form = UserForm()
+    ctx = {
+        'form': form,
+        'title': 'Crear usuario',
+        'back_url': 'core:users',
+        'function_url': 'core:createUser',
+    }
+    return render(request, 'forms/userForm.html', context=ctx)
+
+
+@csrf_protect
+@login_required
+@permission_required('core.add_user', login_url='core:denied')
+def setRole(request, user_pk):
+    if request.method == 'GET':
+        query_role = request.GET.get('query_role', '0')
+        user = get_object_or_404(User, pk=user_pk)
+        if query_role == '1' or query_role == '2':
+            user.user_permissions.set(Permission.objects.filter(codename__in=permits.get(query_role)))
+        elif query_role == '3':
+            user.is_superuser= True
+            user.is_staff= True
+        user.save()
+        ctx = {
+            'title': 'Asignar rol',
+            'roles': roles.items(),
+            'query_role': query_role,
+            'user_pk': user_pk,
+        }
+        return render(request, 'forms/setRole.html', context=ctx)
+    else:
+        redirect('core:users')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.change_user', login_url='core:denied')
+def editUser(request, pk):
+    query_role = request.GET.get('query_role', '1')
+    object = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=object)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            if query_role == '1':
+                user.user_permissions.set(Permission.objects.filter(codename__in=permits.get(query_role)))
+            elif query_role == '2':
+                user.user_permissions.set(Permission.objects.filter(codename__in=permits.get(query_role)))
+            elif query_role == '3':
+                user.user_permissions.set(Permission.objects.all())
+            user.save()
             return redirect('core:users')
     else:
-        form = UserCreationForm()
-    return render(request, 'forms/genericForm.html', {'form': form})'''
+        form = UserForm(instance=object)
+    
+    ctx = {
+        'form': form,
+        'title': 'Editar usuario',
+        'back_url': 'core:users',
+        'function_url': 'core:editUser',
+        'pk': pk,
+        'roles': roles.items(),
+        'query_role': query_role,
+    }
+    return render(request, 'forms/userForm.html', context=ctx)
+
 
 @csrf_protect
 @login_required
-def createUser(request):
-    return createGeneric(request, UserForm, 'core:createUser', 'Nuevo usuario')
-
-@csrf_protect
-@login_required
-def editUser(request, pk):
-    return editGeneric(request, UserForm, pk, 'core:editUser', 'Editar usuario')
-
-@csrf_protect
-@login_required
+@permission_required('core.delete_user', login_url='core:denied')
 def deleteUser(request, pk):
-    return deleteGeneric(request, UserForm, pk, 'core:deleteUser', 'Borrar usuario')
+    object = User.objects.get(pk=pk)
+    if request.method == 'POST':
+        object.delete()
+        return redirect('core:users')
+
+    ctx = {
+        'object': object,
+        'title': 'Eliminar usuario',
+        'back_url': 'core:users',
+        'function_url': 'core:deleteUser',
+        'pk': pk,
+    }
+    return render(request, 'forms/genericDeletion.html', context=ctx)
+
 
 @csrf_protect
 @login_required
+@permission_required('core.view_user', login_url='core:denied')
 def users(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
-    users = User.objects.filter(Q(name__icontains=query_generic)).order_by('username')
+    users = User.objects.filter(Q(username__icontains=query_generic)).order_by('username')
     # Paginator
     paginator = Paginator(users, N)
     page = request.GET.get('page', 1)
@@ -662,6 +842,8 @@ def users(request):
     }
     return render(request, 'masterViewers/users.html', context=ctx)
 
+
+@csrf_protect
 def userLogin(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, request.POST)
@@ -671,24 +853,30 @@ def userLogin(request):
             return redirect('core:index')
     else:
         form = AuthenticationForm()
-    return render(request, 'forms/genericForm.html', {'form': form})
+    return render(request, 'forms/loginForm.html', {'form': form})
+
 
 @csrf_protect
 @login_required
 def userLogout(request):
     logout(request)
-    return redirect('index.html')
+    return redirect('core:index')
 
 
 ### PATIENTS ###
+
 ### MASTER PART ###
-@csrf_protect
-@login_required
-def deletePatient(request, pk):
-    return deleteGeneric(request, PatientForm, pk, 'core:deletePatient', 'Borrar paciente')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_patient', login_url='core:denied')
+def deletePatient(request, pk):
+    return deleteGeneric(request, PatientForm, pk, 'core:deletePatient', 'Borrar paciente')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_patient', login_url='core:denied')
 def patients(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -709,8 +897,11 @@ def patients(request):
 
 
 ### FUNCTIONALITY PART ###
+# this is a functionality and required custom funcions, cannot apply generic ones
+
 @csrf_protect
 @login_required
+@permission_required('core.view_patient', login_url='core:denied')
 def patientsManagement(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -758,8 +949,10 @@ def patientsManagement(request):
     }
     return render(request, 'functionalities/patientsManagement.html', context=ctx)
 
+
 @csrf_protect
 @login_required
+@permission_required('core.add_patient', login_url='core:denied')
 def createPatient(request):
     if request.method == 'POST':
         form = PatientForm(request.POST)
@@ -779,8 +972,10 @@ def createPatient(request):
     }
     return render(request, 'forms/patientForm.html', context=ctx)
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_patient', login_url='core:denied')
 def editPatient(request, pk):
     object = get_object_or_404(Patient, pk=pk)
     if request.method == 'POST':
@@ -801,8 +996,10 @@ def editPatient(request, pk):
     }
     return render(request, 'forms/patientForm.html', context=ctx)
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_patient', login_url='core:denied')
 def dischargePatient(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     patient.admissionDate = None
@@ -816,23 +1013,31 @@ def dischargePatient(request, pk):
 ### MASTER ###
 
 ### LAB MATERIAL ###
+
 @csrf_protect
 @login_required
+@permission_required('core.add_labmaterial', login_url='core:denied')
 def createLabMaterial(request):
     return createGeneric(request, LabMaterialForm, 'core:createLabMaterial', 'Nuevo material de laboratorio')
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_labmaterial', login_url='core:denied')
 def editLabMaterial(request, pk):
     return editGeneric(request, LabMaterialForm, pk, 'core:editLabMaterial', 'Editar material de laboratorio')
 
-@csrf_protect
-@login_required
-def deleteLabMaterial(request, pk):
-    return deleteGeneric(request, LabMaterialForm, pk, 'core:deleteLabMaterial', 'Borrar material de laboratorio')
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_labmaterial', login_url='core:denied')
+def deleteLabMaterial(request, pk):
+    return deleteGeneric(request, LabMaterialForm, pk, 'core:deleteLabMaterial', 'Borrar material de laboratorio')
+
+
+@csrf_protect
+@login_required
+@permission_required('core.view_labmaterial', login_url='core:denied')
 def labMaterials(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -858,8 +1063,11 @@ def labMaterials(request):
 
 
 ### STORAGED LAB MATERIAL ###
+# this is a functionality and required custom funcions, cannot apply generic ones
+
 @csrf_protect
 @login_required
+@permission_required('core.add_storagedlabmaterial', login_url='core:denied')
 def createStoragedLabMaterial(request, storage):
     if request.method == 'POST':
         form = StoragedLabMaterialForm(request.POST)
@@ -895,6 +1103,7 @@ def createStoragedLabMaterial(request, storage):
 
 @csrf_protect
 @login_required
+@permission_required(('core.change_storagedlabmaterial', 'core.delete_storagedlabmaterial'), login_url='core:denied')
 def editStoragedLabMaterial(request, pk):
     obj = get_object_or_404(StoragedLabMaterial, pk=pk)
     if request.method == 'POST':
@@ -923,6 +1132,7 @@ def editStoragedLabMaterial(request, pk):
 
 @csrf_protect
 @login_required
+@permission_required('core.view_storagedlabmaterial', login_url='core:denied')
 def storagedLabMaterials(request):
     # Queries
     query_generic = request.GET.get('query_generic', '')
@@ -960,6 +1170,7 @@ def storagedLabMaterials(request):
 
 @csrf_protect
 @login_required
+@permission_required(('core.change_storagedlabmaterial', 'core.delete_storagedlabmaterial'), login_url='core:denied')
 def consumeStoragedLabMaterial(request, pk):
     storagedLabMaterial = get_object_or_404(StoragedLabMaterial, pk=pk)
     if storagedLabMaterial.quantity > 1:
@@ -972,8 +1183,12 @@ def consumeStoragedLabMaterial(request, pk):
 
 
 ### SAMPLES ###
+# this is a functionality and required custom funcions, cannot apply generic ones
+# this model's functions and unique for "master" and "functionality", 
+
 @csrf_protect
 @login_required
+@permission_required('core.add_sample', login_url='core:denied')
 def createSample(request, storage):
     if request.method == 'POST':
         form = SampleForm(request.POST)
@@ -997,6 +1212,7 @@ def createSample(request, storage):
 
 @csrf_protect
 @login_required
+@permission_required('core.add_sample', login_url='core:denied')
 def sampleID(request, pk):
     ctx = {
         'pk': pk,
@@ -1006,8 +1222,10 @@ def sampleID(request, pk):
     }
     return render(request, 'forms/generatedCode.html', context=ctx)
 
+
 @csrf_protect
 @login_required
+@permission_required('core.change_sample', login_url='core:denied')
 def editSample(request, pk):
     object = get_object_or_404(Sample, pk=pk)
     if request.method == 'POST':
@@ -1034,12 +1252,14 @@ def editSample(request, pk):
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_sample', login_url='core:denied')
 def deleteSample(request, pk):
     return deleteGeneric(request, SampleForm, pk, 'core:deleteSample', 'Descartar muestra')
 
 
 @csrf_protect
 @login_required
+@permission_required('core.view_sample', login_url='core:denied')
 def samples(request):
     # Queries
     query_type = request.GET.get('query_type', '0')
@@ -1082,8 +1302,12 @@ def samples(request):
 
 
 ### BLOOD ###
+# this is a functionality and required custom funcions, cannot apply generic ones
+# this model's functions and unique for "master" and "functionality", 
+
 @csrf_protect
 @login_required
+@permission_required('core.add_blood', login_url='core:denied')
 def createBlood(request, storage):
     if request.method == 'POST':
         form = BloodForm(request.POST)
@@ -1107,6 +1331,7 @@ def createBlood(request, storage):
 
 @csrf_protect
 @login_required
+@permission_required('core.add_blood', login_url='core:denied')
 def bloodID(request, pk):
     ctx = {
         'pk': pk,
@@ -1119,6 +1344,7 @@ def bloodID(request, pk):
 
 @csrf_protect
 @login_required
+@permission_required('core.change_blood', login_url='core:denied')
 def editBlood(request, pk):
     object = get_object_or_404(Blood, pk=pk)
     if request.method == 'POST':
@@ -1145,6 +1371,7 @@ def editBlood(request, pk):
 
 @csrf_protect
 @login_required
+@permission_required('core.delete_blood', login_url='core:denied')
 def deleteBlood(request, pk):
     object = get_object_or_404(Blood, pk=pk)
     if request.method == 'POST':
@@ -1157,8 +1384,10 @@ def deleteBlood(request, pk):
     }
     return render(request, 'forms/bloodDeletion.html', context=ctx)
 
+
 @csrf_protect
 @login_required
+@permission_required('core.view_blood', login_url='core:denied')
 def blood(request):
     # Queries
     query_type = request.GET.get('query_type', '0')
@@ -1206,8 +1435,12 @@ def blood(request):
 
 
 ### BACKEND FUNCTIONS ###
+# this functions are never accesed directly, but throw a JSON
+# anyways, they have some permissions for security reasons
+
 @csrf_protect
 @login_required
+@permission_required('core.view_bed', login_url='core:denied')
 def filter(request, pk_service, floor):
     if request.method == 'GET':
         beds = Bed.objects.all()
@@ -1221,8 +1454,10 @@ def filter(request, pk_service, floor):
     else:
         return JsonResponse({}) 
 
+
 @csrf_protect
 @login_required
+@permission_required('core.view_bed', login_url='core:denied')
 def filterInManagement(request, pk_service, floor):
     if request.method == 'GET':
         beds = Bed.objects.all()
@@ -1235,8 +1470,10 @@ def filterInManagement(request, pk_service, floor):
     else:
         return JsonResponse({})
 
+
 @csrf_protect
 @login_required
+@permission_required('core.view_drug', login_url='core:denied')
 def filterByGroup(request, group):
     if request.method == 'GET':
         drugs = Drug.objects.all()
@@ -1247,9 +1484,11 @@ def filterByGroup(request, group):
         return JsonResponse({'result': result})
     else:
         return JsonResponse({})
-    
+
+
 @csrf_protect
 @login_required
+@permission_required('core.view_labmaterial', login_url='core:denied')
 def filterByType(request, type):
     if request.method == 'GET':
         labMaterials = LabMaterial.objects.all()
@@ -1263,8 +1502,10 @@ def filterByType(request, type):
     else:
         return JsonResponse({})
 
+
 @csrf_protect
 @login_required
+@permission_required('core.view_patient', login_url='core:denied')
 def viewPatient(request, pk):
     if request.method == 'GET':
 
@@ -1286,7 +1527,7 @@ def viewPatient(request, pk):
         
         return JsonResponse({
                                 'backendPatient_name': patient.name,
-                                'backendPatient_historyNumber': str(patient.verbose_historyNumber).zfill(HISTORY_NUMBER_LENGTH),
+                                'backendPatient_historyNumber': str(patient.verbose_historyNumber),
                                 'backendPatient_doctor': patient_doctor,
                                 'backendPatient_constants': patient.verbose_constants,
                                 'backendPatient_admissionDate': patient.verbose_admissionDate,
@@ -1298,8 +1539,10 @@ def viewPatient(request, pk):
     else:
         return JsonResponse({})
 
+
 @csrf_protect
 @login_required
+@permission_required('core.view_storageddrug', login_url='core:denied')
 def viewStoragedDrug(request, pk):
     if request.method == 'GET':
 
@@ -1316,9 +1559,11 @@ def viewStoragedDrug(request, pk):
                             })
     else:
         return JsonResponse({})
-    
+
+
 @csrf_protect
 @login_required
+@permission_required('core.view_storagedlabmaterial', login_url='core:denied')
 def viewStoragedLabMaterial(request, pk):
     if request.method == 'GET':
 
@@ -1334,8 +1579,10 @@ def viewStoragedLabMaterial(request, pk):
     else:
         return JsonResponse({})
     
+
 @csrf_protect
 @login_required
+@permission_required('core.view_sample', login_url='core:denied')
 def viewSample(request, pk):
     if request.method == 'GET':
 
@@ -1352,9 +1599,11 @@ def viewSample(request, pk):
                             })
     else:
         return JsonResponse({})
-    
+
+
 @csrf_protect
 @login_required
+@permission_required('core.view_blood', login_url='core:denied')
 def viewBlood(request, pk):
     if request.method == 'GET':
 
@@ -1372,9 +1621,11 @@ def viewBlood(request, pk):
                             })
     else:
         return JsonResponse({})
+
     
 @csrf_protect
 @login_required
+@permission_required('core.view_blood', login_url='core:denied')
 def getAllBlood(request):
     if request.method == 'GET':
 
@@ -1405,3 +1656,4 @@ def getAllBlood(request):
                             })
     else:
         return JsonResponse({})
+

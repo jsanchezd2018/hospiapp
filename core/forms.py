@@ -1,9 +1,8 @@
 from django import forms
-
 from django.forms import ModelForm
 from core.models import *
 from django.core.validators import MinLengthValidator
-
+from django.contrib.auth.models import User
 
 
 ### PHYSICAL PLACES ###
@@ -131,6 +130,7 @@ class StoragedDrugForm(ModelForm):
     expirationDate = forms.DateField(widget=forms.DateInput(attrs=expirationDate_attrs), label='Fecha de caducidad', label_suffix=' ', required=False)
 
 
+# diferent form for creation and edition
 class StoragedDrugFormEdition(ModelForm):
     class Meta:
         model = StoragedDrug
@@ -180,7 +180,6 @@ class UserForm(ModelForm):
     'class': 'field',
     }
     password = forms.CharField(widget=forms.PasswordInput(attrs=password_attrs), label='Contraseña', label_suffix=' ')
-
 
 class PatientForm(ModelForm):
     class Meta:
@@ -268,6 +267,7 @@ class StoragedLabMaterialForm(ModelForm):
     quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
 
 
+# diferent form for creation and edition
 class StoragedLabMaterialFormEdition(ModelForm):
     class Meta:
         model = StoragedLabMaterial
@@ -309,6 +309,7 @@ class SampleForm(ModelForm):
     data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ', required= False)
 
 
+# diferent form for creation and edition
 class SampleFormEdition(ModelForm):
     class Meta:
         model = Sample
@@ -326,7 +327,6 @@ class SampleFormEdition(ModelForm):
     storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén', label_suffix=' ')
 
 
-### BLOOD ###
 class BloodForm(ModelForm):
     class Meta:
         model = Blood
@@ -365,7 +365,7 @@ class BloodForm(ModelForm):
     }
     process = forms.ChoiceField(choices=processTypes.items(), widget=forms.Select(attrs=process_attrs), label='Tipo de procesamiento', label_suffix=' ')
 
-
+# diferent form for creation and edition
 class BloodFormEdition(ModelForm):
     class Meta:
         model = Blood

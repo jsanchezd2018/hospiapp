@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    
+    <form action="{% url 'core:createUser' %}" method="post">
+        {% csrf_token %}
+        <table><tbody>
+        {% for field in form %}
+        <tr><td>
+        <b>{{ field.label_tag }}</b>
+        </td><td>
+        {{ field }}
+        {{ field.errors }}
+        </td></tr>
+        {% endfor %}
+        </tbody></table>
+        <button type="submit">Guardar</button>
+        <a href="{% url back_url %}">Cancelar</a>
+    </form>
+
+</body>
+{% endblock %}

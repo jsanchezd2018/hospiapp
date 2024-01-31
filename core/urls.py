@@ -1,9 +1,9 @@
 from django.urls import include, path
-from django.contrib.auth.views import LoginView
-
 from . import views
 
 app_name = 'core'
+backendURL = 'http://127.0.0.1:8000/'
+
 
 ### PHYSICAL PLACES ###
 storage_patterns = [
@@ -34,6 +34,7 @@ bed_patterns = [
     path('eliminar/<int:pk>', views.deleteBed, name='deleteBed'),
 ]
 
+
 ### DRUGS ###
 drug_patterns = [
     path('', views.drugs, name='drugs'),
@@ -56,6 +57,7 @@ storagedDrug_patterns = [
     path('consumir/<int:pk>', views.consumeStoragedDrug, name='consumeStoragedDrug'),
 ]
 
+
 ### PEOPLE ###
 doctor_patterns = [
     path('', views.doctors, name='doctors'),
@@ -67,6 +69,7 @@ doctor_patterns = [
 user_patterns = [
     path('', views.users, name='users'),
     path('crear/', views.createUser, name='createUser'),
+    path('asignar/<int:user_pk>', views.setRole, name='setRole'),
     path('editar/<int:pk>', views.editUser, name='editUser'),
     path('eliminar/<int:pk>', views.deleteUser, name='deleteUser'),
 ]
@@ -80,7 +83,8 @@ patient_patterns = [
     path('eliminar/<int:pk>', views.deletePatient, name='deletePatient'),
 ]
 
-### LAB MATERIAL ###
+
+### LAB ###
 labMaterial_patterns = [
     path('', views.labMaterials, name='labMaterials'),
     path('crear/', views.createLabMaterial, name='createLabMaterial'),
@@ -88,7 +92,6 @@ labMaterial_patterns = [
     path('eliminar/<int:pk>', views.deleteLabMaterial, name='deleteLabMaterial'),
 ]
 
-### STORAGED LAB MATERIAL ###
 storagedLabMaterial_patterns = [
     path('', views.storagedLabMaterials, name='storagedLabMaterials'),
     path('crear/<int:storage>', views.createStoragedLabMaterial, name='createStoragedLabMaterial'),
@@ -96,7 +99,6 @@ storagedLabMaterial_patterns = [
     path('consumir/<int:pk>', views.consumeStoragedLabMaterial, name='consumeStoragedLabMaterial'),
 ]
 
-### SAMPLE ###
 sample_patterns = [
     path('', views.samples, name='samples'),
     path('crear/<int:storage>', views.createSample, name='createSample'),
@@ -105,7 +107,6 @@ sample_patterns = [
     path('borrar/<int:pk>', views.deleteSample, name='deleteSample'),
 ]
 
-### BLOOD ###
 blood_patterns = [
     path('', views.blood, name='blood'),
     path('crear/<int:storage>', views.createBlood, name='createBlood'),
@@ -113,6 +114,7 @@ blood_patterns = [
     path('editar/<int:pk>', views.editBlood, name='editBlood'),
     path('borrar/<int:pk>', views.deleteBlood, name='deleteBlood'),
 ]
+
 
 ### BACKUPS ###
 backups_patterns = [
@@ -123,11 +125,10 @@ backups_patterns = [
 
 ### URL PATTERNS ###
 
-backendURL = 'http://127.0.0.1:8000/'
-
 urlpatterns = [
     # Index
     path('', views.index, name='index'),
+    path('permiso_denegado', views.denied, name='denied'),
     # physical places
     path('almacenes/', include(storage_patterns)),
     path('almacenes_laboratorio/', include(labStorage_patterns)),
@@ -147,8 +148,7 @@ urlpatterns = [
     path('muestras/', include(sample_patterns)),
     path('sangre/', include(blood_patterns)),
     # login / logout
-    #path('login/', views.userLogin, name='userLogin'),
-    path('accounts/login/', LoginView.as_view(), name='login'),
+    path('accounts/login/', views.userLogin, name='userLogin'),
     path('logout/', views.userLogout, name='userLogout'),
     # backups
     path('copias_de_seguridad/', include(backups_patterns)),
@@ -164,3 +164,4 @@ urlpatterns = [
     path('viewBlood/<int:pk>', views.viewBlood, name='viewBlood'),
     path('getAllBlood/', views.getAllBlood, name='getAllBlood'),
 ]
+
