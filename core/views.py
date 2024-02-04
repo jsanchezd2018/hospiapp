@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth import login, logout
+from django.contrib import messages
 # Utilidades paginas
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
@@ -553,7 +554,7 @@ def drugTypes(request):
 
 
 ### STORAGED DRUGS ###  
-# this is a functionality and required custom funcions, cannot apply generic ones
+# this is a functionality and required custom functions, cannot apply generic ones
 
 @csrf_protect
 @login_required
@@ -719,7 +720,7 @@ def doctors(request):
 
 
 ### USERS ###
-# this is a functionality and required custom funcions, cannot apply generic ones
+# this is a functionality and required custom functions, cannot apply generic ones
 
 @csrf_protect
 @login_required
@@ -851,6 +852,8 @@ def userLogin(request):
             user = form.get_user()
             login(request, user)
             return redirect('core:index')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos')
     else:
         form = AuthenticationForm()
     return render(request, 'forms/loginForm.html', {'form': form})
@@ -897,7 +900,7 @@ def patients(request):
 
 
 ### FUNCTIONALITY PART ###
-# this is a functionality and required custom funcions, cannot apply generic ones
+# this is a functionality and required custom functions, cannot apply generic ones
 
 @csrf_protect
 @login_required
@@ -920,6 +923,10 @@ def patientsManagement(request):
             patients = patients.filter(admissionDate=None)
     if(query_doctor != '0'):
         patients = patients.filter(doctor__exact=query_doctor)
+    if(query_service != '0'):
+        patients = patients.filter(bed__service__exact=query_service)
+    if(query_floor != ''):
+        patients = patients.filter(bed__floor__exact=query_floor)
     if(query_bed != '0'):
         patients = patients.filter(bed__exact=query_bed)
     if isValidDate(query_date_1) and isValidDate(query_date_2):
@@ -969,6 +976,8 @@ def createPatient(request):
         'function_url': 'core:createPatient',
         'backendURL': urls.backendURL,
         'services': Service.objects.all(),
+        'pk_patient_bed': 0,
+        'pk_bed': 0,
     }
     return render(request, 'forms/patientForm.html', context=ctx)
 
@@ -978,6 +987,11 @@ def createPatient(request):
 @permission_required('core.change_patient', login_url='core:denied')
 def editPatient(request, pk):
     object = get_object_or_404(Patient, pk=pk)
+    if object.bed:
+        pk_bed = object.bed.pk
+    else:
+        pk_bed = 0
+
     if request.method == 'POST':
         form = PatientForm(request.POST, instance=object)
         if form.is_valid():
@@ -992,6 +1006,8 @@ def editPatient(request, pk):
         'back_url': 'core:patientsManagement',
         'function_url': 'core:editPatient',
         'pk': pk,
+        'pk_patient_bed': pk,
+        'pk_bed': pk_bed,
         'services': Service.objects.all()
     }
     return render(request, 'forms/patientForm.html', context=ctx)
@@ -1063,7 +1079,7 @@ def labMaterials(request):
 
 
 ### STORAGED LAB MATERIAL ###
-# this is a functionality and required custom funcions, cannot apply generic ones
+# this is a functionality and required custom functions, cannot apply generic ones
 
 @csrf_protect
 @login_required
@@ -1082,7 +1098,7 @@ def createStoragedLabMaterial(request, storage):
                 obj.quantity += form.quantity
                 form.save()
             else:
-                form.storage = get_object_or_404(Storage, pk=storage)
+                form.storage = get_object_or_404(LabStorage, pk=storage)
                 form.save()
 
             return redirect('core:storagedLabMaterials')
@@ -1091,7 +1107,7 @@ def createStoragedLabMaterial(request, storage):
 
     ctx = {
         'form': form,
-        'title': 'Añadir material de laboratorio al almacén ' + get_object_or_404(Storage, pk=storage).name,
+        'title': 'Añadir material de laboratorio al almacén ' + get_object_or_404(LabStorage, pk=storage).name,
         'back_url': 'core:storagedLabMaterials',
         'function_url': 'core:createStoragedLabMaterial',
         'backendURL': urls.backendURL,
@@ -1162,7 +1178,7 @@ def storagedLabMaterials(request):
         'query_type': int(query_type),
         'query_storage': query_storage,
         'types': materialTypes.items(),
-        'storages': Storage.objects.all(),
+        'storages': LabStorage.objects.all(),
         'backendURL': urls.backendURL,
     }
     return render(request, 'functionalities/storagedLabMaterials.html', context=ctx)
@@ -1183,7 +1199,7 @@ def consumeStoragedLabMaterial(request, pk):
 
 
 ### SAMPLES ###
-# this is a functionality and required custom funcions, cannot apply generic ones
+# this is a functionality and required custom functions, cannot apply generic ones
 # this model's functions and unique for "master" and "functionality", 
 
 @csrf_protect
@@ -1302,7 +1318,7 @@ def samples(request):
 
 
 ### BLOOD ###
-# this is a functionality and required custom funcions, cannot apply generic ones
+# this is a functionality and required custom functions, cannot apply generic ones
 # this model's functions and unique for "master" and "functionality", 
 
 @csrf_protect
@@ -1441,15 +1457,21 @@ def blood(request):
 @csrf_protect
 @login_required
 @permission_required('core.view_bed', login_url='core:denied')
-def filter(request, pk_service, floor):
+def filter(request, pk_service, floor, pk_patient):
     if request.method == 'GET':
         beds = Bed.objects.all()
         if(pk_service != 0): beds = beds.filter(service__exact=pk_service)
         if(floor != 0): beds = beds.filter(floor__exact=floor)
         result = []
-        for bed in beds:
-            if not bed.ocupied:
-                result.append({'key': bed.pk, 'value': bed.name})
+        if pk_patient != 0:
+            occuping_patient = get_object_or_404(Patient, pk=pk_patient)
+            for bed in beds:
+                if (not bed.ocupied) or (occuping_patient.bed == bed):
+                    result.append({'key': bed.pk, 'value': bed.name})
+        else:
+            for bed in beds:
+                if not bed.ocupied:
+                    result.append({'key': bed.pk, 'value': bed.name})
         return JsonResponse({'result': result})
     else:
         return JsonResponse({}) 

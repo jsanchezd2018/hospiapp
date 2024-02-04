@@ -153,7 +153,7 @@ urlpatterns = [
     # backups
     path('copias_de_seguridad/', include(backups_patterns)),
     # backend functions
-    path('filter/<int:pk_service>/<int:floor>', views.filter, name='filter'),
+    path('filter/<int:pk_service>/<int:floor>/<int:pk_patient>', views.filter, name='filter'),
     path('filterByGroup/<int:group>', views.filterByGroup, name='filterByGroup'),
     path('filterByType/<int:type>', views.filterByType, name='filterByType'),
     path('filterInManagement/<int:pk_service>/<int:floor>', views.filterInManagement, name='filterInManagement'),

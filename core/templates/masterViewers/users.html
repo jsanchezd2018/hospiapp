@@ -28,9 +28,8 @@
     {% for user in users %}
     <tr>
         <td>{{ user.username }}</td>
-        <td>{{ user.group }}</td>
-        <td class="out_table"><a href="{% url "core:editUser" user.pk %}">Editar</a></td>
-        <td class="out_table"><a href="{% url "core:deleteUser" user.pk %}">Borrar</a></td>
+        <td>{{ user.role }}</td>
+        <td class="out_table"><a href="{% url "core:deleteUser" user.pk %}">Eliminar usuario</a></td>
     </tr>
     {% endfor %}
 </table>

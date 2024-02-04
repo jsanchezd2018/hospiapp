@@ -51,14 +51,17 @@
 
             var query_service_value = document.getElementById("query_service").value;
             var query_floor_value = document.getElementById("query_floor").value;
+            var pk_patient_bed = {{ pk_patient_bed }};
+            var pk_bed = {{ pk_bed }};
             if(query_floor_value == ''){ query_floor_value = '0' }
-
-            fetch('http://127.0.0.1:8000/filter/' + query_service_value + '/' + query_floor_value)
+            fetch('http://127.0.0.1:8000/filter/' + query_service_value + '/' + query_floor_value + '/' + pk_patient_bed)
             .then(response => {return response.json();})
             .then(json => {
                 bed_selector.add(new Option('-------', ''), undefined);
                 json.result.forEach(bed => {
-                    bed_selector.add(new Option(bed['value'], bed['key']), undefined);
+                    var option = new Option(bed['value'], bed['key'])
+                    bed_selector.add(option, undefined);
+                    if(pk_patient_bed != 0 && option.value == pk_bed) {option.setAttribute('selected', 'selected')}
                 });
             });
         }

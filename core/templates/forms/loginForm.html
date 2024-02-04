@@ -21,8 +21,16 @@
         </td></tr>
         {% endfor %}
         </tbody></table>
+
+        {% for message in messages %}
+        <div class="error_message">{{ message }}</div>
+        {% endfor %}
+        <br>
+
         <button type="submit">Iniciar sesión</button>
     </form>
+
+
 
 </body>
 {% endblock %}

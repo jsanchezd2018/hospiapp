@@ -13,7 +13,7 @@
         <label for="query_role"><b>Rol</b></label>
         </td><td>
         <select id="query_role"  name="query_role" class="field" required>
-            <option value="0"></option>
+            <option value="0" disabled></option>
             {% for role in roles %}
             <option value="{{ role.0 }}" {% if query_role == role.0 %}selected{% endif %}>{{ role.1 }}</option>
             {% endfor %}
@@ -22,6 +22,9 @@
         </tbody></table>
         <button type="submit">Asignar</button>
     </form>
+
+    <h2 class="deletion_message">Tras pulsar Asignar, pulsa para volver a usuarios</h2>
+    <div class="deletion_form"><a href="{% url 'core:users' %}" class="central_button">Volver a usuarios</a></div>
 
 </body>
 {% endblock %}

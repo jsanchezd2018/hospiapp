@@ -70,6 +70,15 @@ button, a {
     width: 15%;
 }
 
+.error_message {
+    font-weight: bold;
+    background-color: #c46c39;
+    border-radius: 8px;
+    padding: 5px;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
 /* Menu */
 
 .dropdown {

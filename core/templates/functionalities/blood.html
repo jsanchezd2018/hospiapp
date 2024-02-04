@@ -230,16 +230,17 @@
             document.getElementById('query_date_2').setAttribute('value', today2359);
         }
 
-        function toDate(str){
-            splited = str.split('/');
-            return new Date(splited[2], splited[1]-1, splited[0]);
+        function toDate(date) {
+            return date[8]+date[9]+'/'+date[5]+date[6]+'/'+date[0]+date[1]+date[2]+date[3]
         }
 
         var deletableRows = document.querySelectorAll('.deletableRow');
         deletableRows.forEach(function(deletableRow) {
             var expirationDate = deletableRow.querySelector('#expirationDate').innerHTML;
-            if (new Date(toDate(expirationDate) - 604800000) >= currentDate){
+            if (new Date(new Date(expirationDate) - 604800000) >= currentDate){
                 deletableRow.innerHTML = '';
+            }else{
+                deletableRow.querySelector('td#expirationDate').innerHTML = toDate(expirationDate.toString());
             }
         });
 

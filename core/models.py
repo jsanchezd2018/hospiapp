@@ -1,5 +1,7 @@
 from datetime import timedelta
 from django.db import models
+from django.contrib.auth.models import User
+
 
 ### CONSTANTS ###
 HISTORY_NUMBER_LENGTH = 14
@@ -162,6 +164,23 @@ roles = {
             '2': 'Laboratorio',
             '3': 'Administración',
     }
+
+caped_roles = {
+            '1': 'Enfermería',
+            '2': 'Laboratorio',
+    }
+
+# aditional property for default User model
+
+def role(self):
+    from core.views import permits
+    permissions = set(self.user_permissions.all().values_list('codename', flat= True))
+    for role in caped_roles.keys():
+        if permissions == set(permits[role]):
+            return roles[role]
+    return 'Administración'
+User.add_to_class('role', property(role))
+
     
 
 ### LAB ###
@@ -214,7 +233,7 @@ class LabMaterial(models.Model):
 # Functionality model
 class StoragedLabMaterial(models.Model):
     labMaterial = models.ForeignKey(LabMaterial, on_delete=models.CASCADE)
-    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
+    storage = models.ForeignKey(LabStorage, on_delete=models.CASCADE)
     quantity = models.IntegerField()
 
     def __str__(self) -> str:
@@ -240,10 +259,13 @@ class Sample(models.Model):
 
     @property
     def expirationDate(self):
-        return showDate(self.date + timedelta(days=sampleDurations[self.sampleType]))
+        return self.date + timedelta(days=sampleDurations[self.sampleType])
     @property
     def verbose_sampleType(self):
         return sampleTypes[self.sampleType]
+    @property
+    def format_expirationDate(self):
+        return self.expirationDate.isoformat()
 
 
 ### BLOOD ###
@@ -299,4 +321,7 @@ class Blood(models.Model):
     @property
     def verbose_process(self):
         return processTypes[self.process]
+    @property
+    def format_expirationDate(self):
+        return self.expirationDate.isoformat()
 
