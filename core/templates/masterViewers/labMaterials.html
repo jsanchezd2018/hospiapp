@@ -12,10 +12,10 @@
 
     <div class="searcher">
         <form action="{% url 'core:labMaterials' %}" method="GET">
-            <label for="query_generic">Buscar por material:</label>
+            <label for="query_generic">Buscar por material</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
             <br>
-            <label for="query_type">Buscar por tipo:</label>
+            <label for="query_type">Buscar por tipo</label>
             <select id="query_type"  name="query_type">
                 <option value="0"></option>
                 {% for key, value in types %}

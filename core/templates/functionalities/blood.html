@@ -129,7 +129,7 @@
                 <thead><tr><td><b>ID</b></td><td><b>Fecha de caducidad</b></td></tr></thead>
                 {% for bag in allBloodBags %}
                 <tr class="deletableRow"><td>{{ bag.pk }}</td>
-                <td id="expirationDate">{{ bag.expirationDate }}</td></tr>
+                <td id="expirationDate">{{ bag.format_expirationDate }}</td></tr>
                 {% endfor %}
             </table>
             
@@ -237,6 +237,7 @@
         var deletableRows = document.querySelectorAll('.deletableRow');
         deletableRows.forEach(function(deletableRow) {
             var expirationDate = deletableRow.querySelector('#expirationDate').innerHTML;
+            console.log(expirationDate)
             if (new Date(new Date(expirationDate) - 604800000) >= currentDate){
                 deletableRow.innerHTML = '';
             }else{

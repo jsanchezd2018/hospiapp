@@ -12,10 +12,10 @@
 
     <div class="searcher">
         <form action="{% url 'core:drugs' %}" method="GET">
-            <label for="query_generic">Buscar por nombre o NDC:</label>
+            <label for="query_generic">Buscar por nombre o NDC</label>
             <input type="text" id="query_generic" name="query_generic" value="{{ query_generic }}">
             <br>
-            <label for="query_type">Buscar por grupo:</label>
+            <label for="query_type">Buscar por grupo</label>
             <select id="query_type"  name="query_type">
                 <option value="0"></option>
                 {% for type in types %}

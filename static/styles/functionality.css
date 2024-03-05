@@ -4,7 +4,7 @@ table {
 
 th {
     color: white;
-    background-color: #05744c;
+    background-color: #286090;
     justify-content: center;
     font-weight: bold;
     padding-left: 10px;
@@ -20,11 +20,11 @@ td {
 }
 
 tr:nth-child(even) {
-    background-color: #3ed44e;
+    background-color: aquamarine;
 }
 
 tr:nth-child(odd) {
-    background-color: #83c88a;
+    background-color: #7bc5dd;
 }
 
 .out_table {
@@ -78,7 +78,7 @@ input, select, label, button {
 
 .viewer_table thead td{
     color: white;
-    background-color: #05744c;
+    background-color: #286090;
 }
 
 .main_table {
