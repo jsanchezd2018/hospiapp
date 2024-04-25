@@ -33,9 +33,9 @@
             <br>
             <button type="submit">Buscar</button>
         </form>
-        {% if query_storage %}<div class="add_button">
-            <a href="{% url "core:createStoragedLabMaterial" query_storage %}">Añadir material al almacén</a>
-        </div>{% endif %}
+        <div class="add_button">
+            <a href="{% url "core:createStoragedLabMaterial" %}">Añadir material a un almacén</a>
+        </div>
     </div>
 
     <div class="grid">

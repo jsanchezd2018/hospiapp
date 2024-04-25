@@ -52,7 +52,7 @@ drugType_patterns = [
 
 storagedDrug_patterns = [
     path('', views.storagedDrugs, name='storagedDrugs'),
-    path('crear/<int:storage>', views.createStoragedDrug, name='createStoragedDrug'),
+    path('crear', views.createStoragedDrug, name='createStoragedDrug'),
     path('editar/<int:pk>', views.editStoragedDrug, name='editStoragedDrug'),
     path('consumir/<int:pk>', views.consumeStoragedDrug, name='consumeStoragedDrug'),
 ]
@@ -94,14 +94,14 @@ labMaterial_patterns = [
 
 storagedLabMaterial_patterns = [
     path('', views.storagedLabMaterials, name='storagedLabMaterials'),
-    path('crear/<int:storage>', views.createStoragedLabMaterial, name='createStoragedLabMaterial'),
+    path('crear', views.createStoragedLabMaterial, name='createStoragedLabMaterial'),
     path('editar/<int:pk>', views.editStoragedLabMaterial, name='editStoragedLabMaterial'),
     path('consumir/<int:pk>', views.consumeStoragedLabMaterial, name='consumeStoragedLabMaterial'),
 ]
 
 sample_patterns = [
     path('', views.samples, name='samples'),
-    path('crear/<int:storage>', views.createSample, name='createSample'),
+    path('crear', views.createSample, name='createSample'),
     path('codigo/<int:pk>', views.sampleID, name='sampleID'),
     path('editar/<int:pk>', views.editSample, name='editSample'),
     path('borrar/<int:pk>', views.deleteSample, name='deleteSample'),
@@ -109,7 +109,7 @@ sample_patterns = [
 
 blood_patterns = [
     path('', views.blood, name='blood'),
-    path('crear/<int:storage>', views.createBlood, name='createBlood'),
+    path('crear', views.createBlood, name='createBlood'),
     path('codigo/<int:pk>', views.bloodID, name='bloodID'),
     path('editar/<int:pk>', views.editBlood, name='editBlood'),
     path('borrar/<int:pk>', views.deleteBlood, name='deleteBlood'),

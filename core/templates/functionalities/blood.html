@@ -47,9 +47,15 @@
             <br>
             <button type="submit">Buscar</button>
         </form>
-        {% if query_storage %}<div class="add_button">
-            <a href="{% url "core:createBlood" query_storage %}">Añadir bolsa al almacén</a>
-        </div>{% endif %}
+        <div class="add_button">
+            <a href="{% url "core:createBlood" %}">Añadir bolsa</a>
+        </div>
+    </div>
+
+    <div class='error_container'>
+        {% if error_message_date %}
+            <p> Las fechas (y horas) introducidas no siguen el formato y no se han tenido en cuenta</p>
+        {% endif %}
     </div>
 
     <div class="grid">

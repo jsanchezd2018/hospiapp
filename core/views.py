@@ -106,7 +106,10 @@ def restoreBackup(request): # restores database from existing backup file
         database = lines[2].replace('\n', '')
         location = lines[3].replace('\n', '')
         sql_dump = lines[4].replace('\n', '')
-    file_name = os.path.join(location, os.listdir(location)[0])
+    try:
+        file_name = os.path.join(location, os.listdir(location)[0])
+    except:
+        return render(request, 'backups/finishedProcess.html', context={'message': 'No se ha encontrado ninguna copia de seguridad'})
 
     # sqldump
     wd = os.getcwd()
@@ -437,7 +440,7 @@ def beds(request):
     if query_floor != '':
         beds = beds.filter(floor__exact=query_floor)
     if query_service != '0':
-        beds = beds.filter( service__exact=query_service )
+        beds = beds.filter(service__exact=query_service)
     # Paginator
     paginator = Paginator(beds, N)
     page = request.GET.get('page', 1)
@@ -559,32 +562,29 @@ def drugTypes(request):
 @csrf_protect
 @login_required
 @permission_required('core.add_storageddrug', login_url='core:denied')
-def createStoragedDrug(request, storage):
+def createStoragedDrug(request):
     if request.method == 'POST':
         form = StoragedDrugForm(request.POST)
         if form.is_valid():
-            actualDrugsInStorage = []
-            for drug in StoragedDrug.objects.filter(storage=storage):
-                actualDrugsInStorage += [drug.drug]
             form = form.save(commit=False)
+            actualDrugsInStorage = []
+            for drug in StoragedDrug.objects.filter(storage=form.storage):
+                actualDrugsInStorage += [drug.drug]
             if form.drug in actualDrugsInStorage:
-                object = StoragedDrug.objects.filter( Q(drug=form.drug) & Q(storage=storage))[0]
+                object = StoragedDrug.objects.filter( Q(drug=form.drug) & Q(storage=form.storage))[0]
                 object.quantity += form.quantity
-                object.storage = get_object_or_404(Storage, pk=storage)
                 object.save()
             else:
-                form.storage = get_object_or_404(Storage, pk=storage)
                 form.save()
         return redirect('core:storagedDrugs')
     else:
         form = StoragedDrugForm()
     ctx = {
         'form': form,
-        'title': 'Añadir medicamento al almacén '+get_object_or_404(Storage, pk=storage).name,
+        'title': 'Añadir medicamento a un almacén ',
         'back_url': 'core:storagedDrugs',
         'function_url': 'core:createStoragedDrug',
         'backendURL': urls.backendURL,
-        'storage': storage,
         'types': DrugType.objects.all(),
     }
     return render(request, 'forms/storagedDrugForm.html', context=ctx)
@@ -602,7 +602,16 @@ def editStoragedDrug(request, pk):
             if form.quantity <= 0:
                 object.delete()
             else:
-                form.save()
+                actualDrugsInStorage = []
+                for drug in StoragedDrug.objects.filter(storage=form.storage):
+                    actualDrugsInStorage += [drug.drug]
+                if form.drug in actualDrugsInStorage:
+                    object2 = StoragedDrug.objects.filter( Q(drug=form.drug) & Q(storage=form.storage))[0]
+                    object2.quantity += form.quantity
+                    object2.save()
+                    object.delete()
+                else:
+                    form.save()
             return redirect('core:storagedDrugs')
     else:
         form = StoragedDrugFormEdition(instance=object)
@@ -629,6 +638,7 @@ def storagedDrugs(request):
     query_storage = request.GET.get('query_storage', '')
     query_date_1 = request.GET.get('query_date_1', '')
     query_date_2 = request.GET.get('query_date_2', '')
+    error_message_date = False
     storagedDrugs = StoragedDrug.objects.filter( drug__name__icontains=query_generic ).order_by('drug__name')
     if query_storage != '':
         storagedDrugs = storagedDrugs.filter( storage__exact=query_storage )
@@ -637,6 +647,8 @@ def storagedDrugs(request):
         storagedDrugs = storagedDrugs.filter( drug__drugType=query_type )
     if isValidDate(query_date_1) and isValidDate(query_date_2):
         storagedDrugs = storagedDrugs.filter(expirationDate__range=[dateFormat(query_date_1), dateFormat(query_date_2)])
+    else:
+        error_message_date = not(query_date_1 == '' and query_date_2 == '')
     # Paginator
     paginator = Paginator(storagedDrugs, N)
     page = request.GET.get('page', 1)
@@ -655,6 +667,7 @@ def storagedDrugs(request):
         'types': DrugType.objects.all(),
         'storages': Storage.objects.all(),
         'backendURL': urls.backendURL,
+        'error_message_date': error_message_date,
     }
     return render(request, 'functionalities/storagedDrugs.html', context=ctx)
 
@@ -663,12 +676,14 @@ def storagedDrugs(request):
 @login_required
 @permission_required(('core.change_storageddrug', 'core.delete_storageddrug'), login_url='core:denied')
 def consumeStoragedDrug(request, pk):
+    # Consume logic
     storagedDrug = get_object_or_404(StoragedDrug, pk=pk)
     if storagedDrug.quantity > 1:
         storagedDrug.quantity -= 1
         storagedDrug.save()
     else:
         storagedDrug.delete()
+    # Render
     return redirect('core:storagedDrugs')
 
 
@@ -915,6 +930,7 @@ def patientsManagement(request):
     query_date_1 = request.GET.get('query_date_1', '')
     query_date_2 = request.GET.get('query_date_2', '')
     query_status = request.GET.get('query_status', '0')
+    error_message_date = False
     patients = Patient.objects.filter(name__icontains=query_generic).order_by('name')
     if(query_status != '0'):
         if(query_status == '1'):
@@ -931,6 +947,9 @@ def patientsManagement(request):
         patients = patients.filter(bed__exact=query_bed)
     if isValidDate(query_date_1) and isValidDate(query_date_2):
         patients = patients.filter(admissionDate__range=[dateFormat(query_date_1), dateFormat(query_date_2)])
+    else:
+        error_message_date = not(query_date_1 == '' and query_date_2 == '')
+
     # Paginator
     paginator = Paginator(patients, N)
     page = request.GET.get('page', 1)
@@ -953,6 +972,7 @@ def patientsManagement(request):
         'backendURL': urls.backendURL,
         'services': Service.objects.all(),
         'bed': Bed.objects.all(),
+        'error_message_date': error_message_date,
     }
     return render(request, 'functionalities/patientsManagement.html', context=ctx)
 
@@ -1084,21 +1104,19 @@ def labMaterials(request):
 @csrf_protect
 @login_required
 @permission_required('core.add_storagedlabmaterial', login_url='core:denied')
-def createStoragedLabMaterial(request, storage):
+def createStoragedLabMaterial(request):
     if request.method == 'POST':
         form = StoragedLabMaterialForm(request.POST)
         if form.is_valid():
             form = form.save(commit=False)
             actualLabMaterialsInStorage = []
-            for labMaterial in StoragedLabMaterial.objects.filter(storage=storage):
-                actualLabMaterialsInStorage += labMaterial.labMaterial
-
+            for labMaterial in StoragedLabMaterial.objects.filter(storage=form.storage):
+                actualLabMaterialsInStorage += [labMaterial.labMaterial]
             if form.labMaterial in actualLabMaterialsInStorage:
-                obj = StoragedLabMaterial.objects.filter(Q(labMaterial=form.labMaterial) & Q(storage=storage))
+                obj = StoragedLabMaterial.objects.filter(Q(labMaterial=form.labMaterial) & Q(storage=form.storage))[0]
                 obj.quantity += form.quantity
-                form.save()
+                obj.save()
             else:
-                form.storage = get_object_or_404(LabStorage, pk=storage)
                 form.save()
 
             return redirect('core:storagedLabMaterials')
@@ -1107,11 +1125,10 @@ def createStoragedLabMaterial(request, storage):
 
     ctx = {
         'form': form,
-        'title': 'Añadir material de laboratorio al almacén ' + get_object_or_404(LabStorage, pk=storage).name,
+        'title': 'Añadir material de laboratorio a un almacén ',
         'back_url': 'core:storagedLabMaterials',
         'function_url': 'core:createStoragedLabMaterial',
         'backendURL': urls.backendURL,
-        'storage': storage,
         'types': materialTypes.items(),
     }
     return render(request, 'forms/storagedLabMaterialForm.html', context=ctx)
@@ -1127,9 +1144,18 @@ def editStoragedLabMaterial(request, pk):
         if form.is_valid():
             form = form.save(commit=False)
             if form.quantity <= 0:
-                obj.delete()
+                object.delete()
             else:
-                form.save()
+                actualLabMaterialsInStorage = []
+                for labM in StoragedLabMaterial.objects.filter(storage=form.storage):
+                    actualLabMaterialsInStorage += [labM.labMaterial]
+                if form.labMaterial in actualLabMaterialsInStorage:
+                    object2 = StoragedLabMaterial.objects.filter( Q(labMaterial=form.labMaterial) & Q(storage=form.storage))[0]
+                    object2.quantity += form.quantity
+                    object2.save()
+                    obj.delete()
+                else:
+                    form.save()
             return redirect('core:storagedLabMaterials')
     else:
         form = StoragedLabMaterialFormEdition(instance=obj)
@@ -1205,23 +1231,20 @@ def consumeStoragedLabMaterial(request, pk):
 @csrf_protect
 @login_required
 @permission_required('core.add_sample', login_url='core:denied')
-def createSample(request, storage):
+def createSample(request):
     if request.method == 'POST':
         form = SampleForm(request.POST)
         if form.is_valid():
-            form = form.save(commit=False)
-            form.storage = get_object_or_404(LabStorage, pk=storage)
-            form.save()
+            form = form.save()
             return redirect('core:sampleID', form.pk)
     else:
         form = SampleForm()
     ctx = {
         'form': form,
-        'title': 'Añadir muestra al almacén ' + get_object_or_404(LabStorage, pk=storage).name,
+        'title': 'Añadir muestra a un almacén ',
         'back_url': 'core:samples',
         'function_url': 'core:createSample',
         'backendURL': urls.backendURL,
-        'storage': storage,
     }
     return render(request, 'forms/sampleForm.html', context=ctx)
 
@@ -1283,6 +1306,7 @@ def samples(request):
     query_date_1 = request.GET.get('query_date_1', '')
     query_date_2 = request.GET.get('query_date_2', '')
     query_storage = request.GET.get('query_storage', '')
+    error_message_date = False
     samples = Sample.objects.all().order_by('-date')
     allSamples = samples
     if query_storage != '':
@@ -1294,6 +1318,9 @@ def samples(request):
         samples = samples.filter(Q(patient__name__icontains=query_patient) | (Q(patient__historyNumber__icontains=query_patient)))
     if isValidDateTime(query_date_1) and isValidDateTime(query_date_2):
         samples = samples.filter(date__range=[dateTimeFormat(query_date_1), dateTimeFormat(query_date_2)])
+    else:
+        error_message_date = not(query_date_1 == '' and query_date_2 == '')
+
     # Paginator
     paginator = Paginator(samples, N)
     page = request.GET.get('page', 1)
@@ -1313,6 +1340,7 @@ def samples(request):
         'types': sampleTypes.items(),
         'storages': LabStorage.objects.all(),
         'backendURL': urls.backendURL,
+        'error_message_date': error_message_date,
     }
     return render(request, 'functionalities/samples.html', context=ctx)
 
@@ -1324,23 +1352,20 @@ def samples(request):
 @csrf_protect
 @login_required
 @permission_required('core.add_blood', login_url='core:denied')
-def createBlood(request, storage):
+def createBlood(request):
     if request.method == 'POST':
         form = BloodForm(request.POST)
         if form.is_valid():
-            form = form.save(commit=False)
-            form.storage = get_object_or_404(LabStorage, pk=storage)
-            form.save()
+            form = form.save()
             return redirect('core:bloodID', form.pk)
     else:
         form = BloodForm()
     ctx = {
         'form': form,
-        'title': 'Añadir bolsa de sangre a ' + get_object_or_404(LabStorage, pk=storage).name,
+        'title': 'Añadir bolsa de sangre',
         'back_url': 'core:blood',
         'function_url': 'core:createBlood',
         'backendURL': urls.backendURL,
-        'storage': storage,
     }
     return render(request, 'forms/bloodForm.html', context=ctx)
 
@@ -1412,6 +1437,7 @@ def blood(request):
     query_date_2 = request.GET.get('query_date_2', '')
     query_process = request.GET.get('query_process', '0')
     query_storage = request.GET.get('query_storage', '')
+    error_message_date = False
     bloodBags = Blood.objects.all().order_by('-date')
     allBloodBags = bloodBags
     if query_storage != '':
@@ -1425,6 +1451,8 @@ def blood(request):
         bloodBags = bloodBags.filter(process=query_process)
     if isValidDateTime(query_date_1) and isValidDateTime(query_date_2):
         bloodBags = bloodBags.filter(date__range=[dateTimeFormat(query_date_1), dateTimeFormat(query_date_2)])
+    else:
+        error_message_date = not(query_date_1 == '' and query_date_2 == '')
     # Paginator
     paginator = Paginator(bloodBags, N)
     page = request.GET.get('page', 1)
@@ -1446,6 +1474,7 @@ def blood(request):
         'processes': processTypes.items(),
         'storages': LabStorage.objects.all(),
         'backendURL': urls.backendURL,
+        'error_message_date': error_message_date,
     }
     return render(request, 'functionalities/blood.html', context=ctx)
 

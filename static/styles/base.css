@@ -139,3 +139,10 @@ nav a {
     border: none;
     background-color: #b84949;
 }
+
+.error_container {
+    background-color: #ff7f0f;
+    color: white;
+    font-size: 24px;
+    padding: 5 px;
+}

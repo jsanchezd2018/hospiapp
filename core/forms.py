@@ -16,7 +16,7 @@ class StorageForm(ModelForm):
         'max_length': 20,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')
 
 
 class LabStorageForm(ModelForm):
@@ -29,7 +29,7 @@ class LabStorageForm(ModelForm):
         'max_length': 20,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')    
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')    
     
 
 class ServiceForm(ModelForm):
@@ -42,7 +42,7 @@ class ServiceForm(ModelForm):
         'max_length': 20,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')
 
 
 class BedForm(ModelForm):
@@ -55,17 +55,17 @@ class BedForm(ModelForm):
         'max_length': 10,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')
     
     floor_attrs= {
         'class': 'field',
     }
-    floor = forms.IntegerField(widget=forms.NumberInput(attrs=floor_attrs), label='Planta', label_suffix=' ')
+    floor = forms.IntegerField(widget=forms.NumberInput(attrs=floor_attrs), label='Planta (*)', label_suffix=' ')
 
     service_attrs= {
         'class': 'field',
     }
-    service = forms.ModelChoiceField(queryset= Service.objects.all(), widget=forms.Select(attrs=service_attrs), label='Servicio', label_suffix=' ')
+    service = forms.ModelChoiceField(queryset= Service.objects.all(), widget=forms.Select(attrs=service_attrs), label='Servicio (*)', label_suffix=' ')
 
 
 ### DRUGS ###
@@ -79,7 +79,7 @@ class DrugTypeForm(ModelForm):
         'max_length': 30,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')    
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')    
 
 
 class DrugForm(ModelForm):
@@ -92,7 +92,7 @@ class DrugForm(ModelForm):
         'max_length': 30,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')
     
     NDC_attrs= {
         'max_length': NDC_LENGTH,
@@ -109,44 +109,54 @@ class DrugForm(ModelForm):
 class StoragedDrugForm(ModelForm):
     class Meta:
         model = StoragedDrug
-        fields = ['drug', 'quantity', 'expirationDate']
+        fields = ['drug', 'quantity', 'expirationDate', 'storage']
         redirect_url = 'core:storagedDrugs'
         
     drug_attrs= {
         'class': 'field',
         'id': 'drug_selector'
     }
-    drug = forms.ModelChoiceField(queryset= Drug.objects.all(), widget=forms.Select(attrs=drug_attrs), label='Medicamento', label_suffix=' ')
+    drug = forms.ModelChoiceField(queryset= Drug.objects.all(), widget=forms.Select(attrs=drug_attrs), label='Medicamento (*)', label_suffix=' ')
     
     quantity_attrs= {
         'class': 'field',
         'min': 1,
     }
-    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
+    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad (*)', label_suffix=' ')
 
     expirationDate_attrs= {
         'class': 'field date',
     }
     expirationDate = forms.DateField(widget=forms.DateInput(attrs=expirationDate_attrs), label='Fecha de caducidad', label_suffix=' ', required=False)
 
+    storage_attrs= {
+        'class': 'field date',
+    }
+    storage = forms.ModelChoiceField(queryset=Storage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén', label_suffix=' ')
+
 
 # diferent form for creation and edition
 class StoragedDrugFormEdition(ModelForm):
     class Meta:
         model = StoragedDrug
-        fields = ['quantity', 'expirationDate']
+        fields = ['quantity', 'expirationDate', 'storage']
         redirect_url = 'core:storagedDrugs'
     
     quantity_attrs= {
         'class': 'field',
         'min': 0,
     }
-    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
+    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad (*)', label_suffix=' ')
 
     expirationDate_attrs= {
         'class': 'field',
     }
     expirationDate = forms.DateField(widget=forms.DateInput(attrs=expirationDate_attrs), label='Fecha de caducidad', label_suffix=' ', required=False)
+
+    storage_attrs= {
+        'class': 'field',
+    }
+    storage = forms.ModelChoiceField(queryset=Storage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén (*)', label_suffix=' ')
     
     
 ### PEOPLE ###
@@ -160,7 +170,7 @@ class DoctorForm(ModelForm):
         'max_length': 30,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')
     
     
 class UserForm(ModelForm):
@@ -173,13 +183,13 @@ class UserForm(ModelForm):
         'max_length': 20,
         'class': 'field',
     }
-    username = forms.CharField(widget=forms.TextInput(attrs=username_attrs), label='Nombre de usuario', label_suffix=' ')
+    username = forms.CharField(widget=forms.TextInput(attrs=username_attrs), label='Nombre de usuario (*)', label_suffix=' ')
 
     password_attrs = {
     'max_length': 20,
     'class': 'field',
     }
-    password = forms.CharField(widget=forms.PasswordInput(attrs=password_attrs), label='Contraseña', label_suffix=' ')
+    password = forms.CharField(widget=forms.PasswordInput(attrs=password_attrs), label='Contraseña (*)', label_suffix=' ')
 
 class PatientForm(ModelForm):
     class Meta:
@@ -191,7 +201,7 @@ class PatientForm(ModelForm):
         'max_length': 30,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre', label_suffix=' ')
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Nombre (*)', label_suffix=' ')
 
     historyNumber_attrs = {
         'max_length': HISTORY_NUMBER_LENGTH,
@@ -225,7 +235,7 @@ class PatientForm(ModelForm):
     admissionDate_attrs = {
         'class': 'field date',
     }
-    admissionDate = forms.DateField(widget=forms.DateInput(attrs=admissionDate_attrs), label='Fecha de ingreso', label_suffix=' ')
+    admissionDate = forms.DateField(widget=forms.DateInput(attrs=admissionDate_attrs), label='Fecha de ingreso (*)', label_suffix=' ')
 
 
 ### LAB ###
@@ -239,74 +249,90 @@ class LabMaterialForm(ModelForm):
         'max_length': 30,
         'class': 'field',
     }
-    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Material', label_suffix=' ')
+    name = forms.CharField(widget=forms.TextInput(attrs=name_attrs), label='Material (*)', label_suffix=' ')
     
     materialType_attrs= {
         'max_length': 1,
         'class': 'field',
     }
-    materialType = forms.ChoiceField(choices=materialTypes.items(), widget=forms.Select(attrs=name_attrs), label='Tipo de material', label_suffix=' ')
+    materialType = forms.ChoiceField(choices=materialTypes.items(), widget=forms.Select(attrs=name_attrs), label='Tipo de material (*)', label_suffix=' ')
     
 
 class StoragedLabMaterialForm(ModelForm):
     class Meta:
         model = StoragedLabMaterial
-        fields = ['labMaterial', 'quantity']
+        fields = ['labMaterial', 'quantity', 'storage']
         redirect_url = 'core:storagedLabMaterials'
         
     labMaterial_attrs= {
         'class': 'field',
         'id': 'labMaterial_selector',
     }
-    labMaterial = forms.ModelChoiceField(queryset= LabMaterial.objects.all(), widget=forms.Select(attrs=labMaterial_attrs), label='Material', label_suffix=' ')
+    labMaterial = forms.ModelChoiceField(queryset= LabMaterial.objects.all(), widget=forms.Select(attrs=labMaterial_attrs), label='Material (*)', label_suffix=' ')
 
     quantity_attrs= {
         'class': 'field',
         'min': 0,
     }
-    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
+    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad (*)', label_suffix=' ')
+
+    storage_attrs= {
+        'class': 'field',
+        'min': 0,
+    }
+    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén (*)', label_suffix=' ')
 
 
 # diferent form for creation and edition
 class StoragedLabMaterialFormEdition(ModelForm):
     class Meta:
         model = StoragedLabMaterial
-        fields = ['quantity']
+        fields = ['quantity', 'storage']
         redirect_url = 'core:storagedLabMaterials'
         
     quantity_attrs= {
         'class': 'field',
         'min': 0,
     }
-    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad', label_suffix=' ')
+    quantity = forms.IntegerField(widget=forms.NumberInput(attrs=quantity_attrs), label='Cantidad (*)', label_suffix=' ')
+
+    storage_attrs= {
+        'class': 'field',
+    }
+    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén (*)', label_suffix=' ')
     
 
 class SampleForm(ModelForm):
     class Meta:
         model = Sample
-        fields = ['sampleType', 'patient', 'date', 'data']
+        fields = ['sampleType', 'patient', 'date', 'data', 'storage']
         redirect_url = 'core:samples'
         
     sampleType_attrs= {
         'class': 'field',
     }
-    sampleType = forms.ChoiceField(choices= sampleTypes.items(), widget=forms.Select(attrs=sampleType_attrs), label='Tipo de muestra', label_suffix=' ')
+    sampleType = forms.ChoiceField(choices= sampleTypes.items(), widget=forms.Select(attrs=sampleType_attrs), label='Tipo de muestra (*)', label_suffix=' ')
 
     patient_attrs= {
         'class': 'field',
         'id': 'patient_selector'
     }
-    patient = forms.ModelChoiceField(queryset= Patient.objects.all(), widget=forms.Select(attrs=patient_attrs), label='Paciente', label_suffix=' ')
+    patient = forms.ModelChoiceField(queryset= Patient.objects.all(), widget=forms.Select(attrs=patient_attrs), label='Paciente (*)', label_suffix=' ')
     
     date_attrs= {
         'class': 'field datetime',
     }
-    date = forms.DateTimeField(widget=forms.DateTimeInput(attrs=date_attrs), label='Fecha de muestra', label_suffix=' ')
+    date = forms.DateTimeField(widget=forms.DateTimeInput(attrs=date_attrs), label='Fecha de muestra (*)', label_suffix=' ')
 
     data_attrs= {
         'class': 'field',
     }
     data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ', required= False)
+
+    storage_attrs = {
+        'class': 'field',
+    }
+    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén', label_suffix=' ')
 
 
 # diferent form for creation and edition
@@ -319,40 +345,40 @@ class SampleFormEdition(ModelForm):
     data_attrs= {
         'class': 'field',
     }
-    data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados', label_suffix=' ', required= False)
+    data = forms.CharField(widget=forms.Textarea(attrs=data_attrs), label='Observaciones y resultados (*)', label_suffix=' ', required= False)
 
     storage_attrs= {
         'class': 'field',
     }
-    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén', label_suffix=' ')
+    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén (*)', label_suffix=' ')
 
 
 class BloodForm(ModelForm):
     class Meta:
         model = Blood
-        fields = ['bloodGroup', 'capacity', 'date', 'tests', 'reserved', 'process']
+        fields = ['bloodGroup', 'capacity', 'date', 'tests', 'reserved', 'process', 'storage']
         redirect_url = 'core:blood'
         
     bloodGroup_attrs= {
         'class': 'field',
     }
-    bloodGroup = forms.ChoiceField(choices= bloodGroups.items(), widget=forms.Select(attrs=bloodGroup_attrs), label='Grupo sanguíneo', label_suffix=' ')
+    bloodGroup = forms.ChoiceField(choices= bloodGroups.items(), widget=forms.Select(attrs=bloodGroup_attrs), label='Grupo sanguíneo (*)', label_suffix=' ')
 
     capacity_attrs= {
         'class': 'field',
     }
-    capacity = forms.IntegerField(widget=forms.NumberInput(attrs=capacity_attrs), label='Volumen de sangre (mL)', label_suffix=' ')
+    capacity = forms.IntegerField(widget=forms.NumberInput(attrs=capacity_attrs), label='Volumen de sangre (mL) (*)', label_suffix=' ')
 
     date_attrs= {
         'class': 'field datetime',
     }
-    date = forms.DateTimeField(widget=forms.DateTimeInput(attrs=date_attrs), label='Fecha de recepción', label_suffix=' ')
+    date = forms.DateTimeField(widget=forms.DateTimeInput(attrs=date_attrs), label='Fecha de recepción (*)', label_suffix=' ')
 
     tests_attrs= {
         'class': 'field',
         'min_value': 0,
     }
-    tests = forms.IntegerField(widget=forms.NumberInput(attrs=tests_attrs), label='Número de pruebas', label_suffix=' ', initial=0)
+    tests = forms.IntegerField(widget=forms.NumberInput(attrs=tests_attrs), label='Número de pruebas (*)', label_suffix=' ', initial=0)
 
     reserved_attrs= {
         'class': 'field',
@@ -363,7 +389,13 @@ class BloodForm(ModelForm):
     process_attrs= {
         'class': 'field',
     }
-    process = forms.ChoiceField(choices=processTypes.items(), widget=forms.Select(attrs=process_attrs), label='Tipo de procesamiento', label_suffix=' ')
+    process = forms.ChoiceField(choices=processTypes.items(), widget=forms.Select(attrs=process_attrs), label='Tipo (*)', label_suffix=' ')
+
+    storage_attrs= {
+        'class': 'field',
+    }
+    storage = forms.ModelChoiceField(queryset=LabStorage.objects.all(), widget=forms.Select(attrs=storage_attrs), label='Almacén (*)', label_suffix=' ')
+
 
 # diferent form for creation and edition
 class BloodFormEdition(ModelForm):
@@ -376,7 +408,7 @@ class BloodFormEdition(ModelForm):
         'class': 'field',
         'min_value': 0,
     }
-    tests = forms.IntegerField(widget=forms.NumberInput(attrs=tests_attrs), label='Número de pruebas', label_suffix=' ', initial=0)
+    tests = forms.IntegerField(widget=forms.NumberInput(attrs=tests_attrs), label='Número de pruebas (*)', label_suffix=' ', initial=0)
 
     reserved_attrs= {
         'class': 'field',
