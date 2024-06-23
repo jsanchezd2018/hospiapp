@@ -1306,9 +1306,12 @@ def samples(request):
     query_date_1 = request.GET.get('query_date_1', '')
     query_date_2 = request.GET.get('query_date_2', '')
     query_storage = request.GET.get('query_storage', '')
+    query_id = request.GET.get('query_id', '')
     error_message_date = False
     samples = Sample.objects.all().order_by('-date')
     allSamples = samples
+    if query_id != '':
+        samples = samples.filter( pk=query_id )
     if query_storage != '':
         samples = samples.filter( storage=query_storage )
         query_storage = int(query_storage)
@@ -1337,6 +1340,7 @@ def samples(request):
         'query_date_1': query_date_1,
         'query_date_2': query_date_2,
         'query_storage': query_storage,
+        'query_id': query_id,
         'types': sampleTypes.items(),
         'storages': LabStorage.objects.all(),
         'backendURL': urls.backendURL,
@@ -1437,9 +1441,12 @@ def blood(request):
     query_date_2 = request.GET.get('query_date_2', '')
     query_process = request.GET.get('query_process', '0')
     query_storage = request.GET.get('query_storage', '')
+    query_id = request.GET.get('query_id', '')
     error_message_date = False
     bloodBags = Blood.objects.all().order_by('-date')
     allBloodBags = bloodBags
+    if query_id != '':
+        bloodBags = bloodBags.filter( pk=query_id )
     if query_storage != '':
         bloodBags = bloodBags.filter( storage=query_storage )
         query_storage = int(query_storage)
@@ -1470,6 +1477,7 @@ def blood(request):
         'query_date_2': query_date_2,
         'query_storage': query_storage,
         'query_process': query_process,
+        'query_id': query_id,
         'types': bloodGroups.items(),
         'processes': processTypes.items(),
         'storages': LabStorage.objects.all(),
